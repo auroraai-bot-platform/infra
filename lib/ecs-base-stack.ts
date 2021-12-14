@@ -27,6 +27,7 @@ export class EcsBaseStack extends cdk.Stack {
   public readonly baseLoadBalancer: elbv2.ApplicationLoadBalancer;
   public readonly baseCertificate: acm.Certificate;
   public readonly mongoSecret: secrets.Secret;
+  public readonly graphqlSecret: secrets.Secret;
 
   constructor(scope: cdk.Construct, id: string, props: EcsBaseProps) {
     super(scope, id, props);
@@ -35,6 +36,22 @@ export class EcsBaseStack extends cdk.Stack {
     this.baseVpc = new ec2.Vpc(this, `${prefix}vpc`, {
       maxAzs: 2,
       natGateways: 1
+    });
+
+    this.baseVpc.addGatewayEndpoint(`${prefix}vpc-endpoint-s3`, {
+      service: ec2.GatewayVpcEndpointAwsService.S3
+    });
+
+    this.baseVpc.addInterfaceEndpoint(`${prefix}vpc-endpoint-ecr`, {
+      service: ec2.InterfaceVpcEndpointAwsService.ECR
+    });
+
+    this.baseVpc.addInterfaceEndpoint(`${prefix}vpc-endpoint-ecr-dkr`, {
+      service: ec2.InterfaceVpcEndpointAwsService.ECR_DOCKER
+    });
+
+    this.baseVpc.addInterfaceEndpoint(`${prefix}vpc-endpoint-cloudwatch`, {
+      service: ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS
     });
 
     const zone = route53.HostedZone.fromLookup(this, `${prefix}route53-zone`, {domainName: props.domain});
@@ -81,9 +98,17 @@ export class EcsBaseStack extends cdk.Stack {
 
 
     const mongoSecretName = `${prefix}mongo-connectionstring`;
+    const graphqlSecretName = `${prefix}graphql-apikey`;
 
     this.mongoSecret = new secrets.Secret(this, mongoSecretName, {
       secretName: mongoSecretName
+    });
+
+    this.graphqlSecret = new secrets.Secret(this, graphqlSecretName, {
+      secretName: graphqlSecretName,
+      generateSecretString: {
+        excludePunctuation: true
+      }
     });
 
     this.baseCluster = new ecs.Cluster(this, `${prefix}ecs-cluster`, {
