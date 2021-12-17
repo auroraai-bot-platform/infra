@@ -19,7 +19,7 @@ interface WebChatProps extends BaseStackProps {
   subDomain: string;
 }
 
-const frontendVersion = '0.0.6';
+const frontendVersion = '0.0.7';
 const sourceBucketName = 'auroraai-source-code-bucket';
 export class WebChatStack extends cdk.Stack {
   public readonly rasaBotAddressMap: Map<RasaBot, string> = new Map<RasaBot, string>();
