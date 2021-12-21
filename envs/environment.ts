@@ -3,29 +3,13 @@ import { EcsBaseStack } from '../lib/ecs-base-stack';
 import { EcsBfStack } from '../lib/ecs-bf-stack';
 import { EcsRasaStack } from '../lib/ecs-rasa-stack';
 import { WebChatStack } from '../lib/web-chat-stack';
-import { RasaBot } from '../types';
+import { EnvironmentConfiguration } from '../types';
 
-export interface EnvironmentConfiguration {
-  domain: string;
-  env: {
-    account: string;
-    region: string;
-  }
-  envName: string;
-  rasaBots: RasaBot[];
-  subDomain: string;
-  defaultRepositories: DefaultRepositories
-}
-
-export interface DefaultRepositories {
-  botfrontRepository: string;
-  rasaBotRepository: string;
-  actionsRepository: string;
-}
 
 export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration) {
-
-  const portCollision = [...new Set(config.rasaBots.map((bot) => bot.rasaPort)), ...new Set(config.rasaBots.map((bot) => bot.actionsPort))].length !== config.rasaBots.length * 2;
+  const allPorts = config.rasaBots.map(bot => [bot.actionsPort, bot.rasaPort]).flat();
+  const uniquePortCount: number = new Set(allPorts).size;
+  const portCollision = uniquePortCount !== allPorts.length;
 
   if (portCollision) {
     throw new Error(`Env: ${config.envName}. Cannot create environment because of colliding port configurations. ${JSON.stringify(config.rasaBots)}`);
@@ -52,7 +36,8 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
     domain: config.domain,
     env: config.env,
     mongoSecret: ecsBaseStack.mongoSecret,
-    graphqlSecret: ecsBaseStack.graphqlSecret
+    graphqlSecret: ecsBaseStack.graphqlSecret,
+    botfrontVersion: config.softwareVersions.botfront
   });
   cdk.Tags.of(ecsBfStack).add('environment', config.envName)
 
@@ -75,7 +60,8 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
     env: config.env,
     rasaBots: config.rasaBots,
     domain: config.domain,
-    subDomain: config.subDomain
+    subDomain: config.subDomain,
+    frontendVersion: config.softwareVersions.frontend
   });
 
   return { ecsBaseStack, EcsBfStack, rasaBotStack };

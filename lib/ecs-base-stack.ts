@@ -11,8 +11,7 @@ import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as ecrdeploy from 'cdk-ecr-deployment';
 
 import { createPrefix } from './utilities';
-import { BaseStackProps, RasaBot } from '../types';
-import { DefaultRepositories } from '../envs/environment';
+import { BaseStackProps, DefaultRepositories, RasaBot } from '../types';
 
 interface EcsBaseProps extends BaseStackProps {
   defaultRepositories: DefaultRepositories;

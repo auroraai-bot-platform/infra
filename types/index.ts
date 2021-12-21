@@ -15,3 +15,26 @@ export interface RasaBot {
     }
   }
 }
+export interface SoftwareVersions {
+  frontend: string;
+  botfront: string;
+}
+
+export interface EnvironmentConfiguration {
+  domain: string;
+  env: {
+    account: string;
+    region: string;
+  }
+  envName: string;
+  rasaBots: RasaBot[];
+  subDomain: string;
+  defaultRepositories: DefaultRepositories;
+  softwareVersions: SoftwareVersions;
+}
+
+export interface DefaultRepositories {
+  botfrontRepository: string;
+  rasaBotRepository: string;
+  actionsRepository: string;
+}
