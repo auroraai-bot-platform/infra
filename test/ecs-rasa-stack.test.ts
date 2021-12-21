@@ -4,7 +4,7 @@ import { EcsRasaStack } from '../lib/ecs-rasa-stack';
 import { EcsBfStack } from '../lib/ecs-bf-stack';
 import { EcsBaseStack } from '../lib/ecs-base-stack';
 import { RasaBot } from '../types';
-import { DefaultRepositories } from '../envs/environment';
+import { defaultRepositories, softwareVersions } from './fixtures';
 
 const envName = 'test';
 const subDomain = 'test';
@@ -12,11 +12,6 @@ const domain = 'test.test';
 const region = 'test';
 const account = '0123456789'
 
-const defaultRepositories: DefaultRepositories = {
-    actionsRepository: 'test',
-    botfrontRepository: 'test',
-    rasaBotRepository: 'test',
-};
 let ecrRepos: RasaBot[] = [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer'}];
 
 
@@ -46,7 +41,8 @@ test('Create rasa-stack with one bot', () => {
     baseLoadbalancer: basestack.baseLoadBalancer,
     baseVpc: basestack.baseVpc,
     mongoSecret: basestack.mongoSecret,
-    graphqlSecret: basestack.graphqlSecret
+    graphqlSecret: basestack.graphqlSecret,
+    botfrontVersion: softwareVersions.botfront
   });
   const teststack = new EcsRasaStack(app, 'MyTestStack', {
     envName,
@@ -106,7 +102,8 @@ test('Create rasa-stack with two bots', () => {
     baseLoadbalancer: basestack.baseLoadBalancer,
     baseVpc: basestack.baseVpc,
     mongoSecret: basestack.mongoSecret,
-    graphqlSecret: basestack.graphqlSecret
+    graphqlSecret: basestack.graphqlSecret,
+    botfrontVersion: softwareVersions.botfront
   });
   const teststack = new EcsRasaStack(app, 'MyTestStack', {
     envName,
