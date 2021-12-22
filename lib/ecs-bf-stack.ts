@@ -18,7 +18,8 @@ interface EcsBfProps extends BaseStackProps {
   baseCertificate: acm.Certificate,
   domain: string,
   mongoSecret: secrets.Secret,
-  graphqlSecret: secrets.Secret
+  graphqlSecret: secrets.Secret,
+  botfrontVersion: string;
 }
 
 export class EcsBfStack extends cdk.Stack {
@@ -42,7 +43,7 @@ export class EcsBfStack extends cdk.Stack {
     fileBucket.grantDelete(botfronttd.taskRole);
 
     botfronttd.addContainer(`${prefix}container-botfront`, {
-      image: ecs.ContainerImage.fromEcrRepository(bfrepo),
+      image: ecs.ContainerImage.fromEcrRepository(bfrepo, props.botfrontVersion),
       containerName: 'botfront',
       portMappings: [
         {

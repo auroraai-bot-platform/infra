@@ -2,7 +2,7 @@ import {countResources, expect as expectCDK }from '@aws-cdk/assert';
 import * as cdk from '@aws-cdk/core';
 import { EcsBaseStack } from '../lib/ecs-base-stack';
 import { RasaBot } from '../types';
-import { DefaultRepositories } from '../envs/environment';
+import { defaultRepositories } from './fixtures';
 
 const envName = 'test';
 const subDomain = 'test';
@@ -10,11 +10,7 @@ const domain = 'test.test';
 const region = 'test';
 const account = '0123456789'
 
-const defaultRepositories: DefaultRepositories = {
-    actionsRepository: 'test',
-    botfrontRepository: 'test',
-    rasaBotRepository: 'test',
-};
+
 let ecrRepos: RasaBot[] = [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer'}];
 
 test('Create base-stack with one bot without snapshot', () => {

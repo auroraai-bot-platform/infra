@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import { RasaBot } from '../types';
-import { createEnvironment, DefaultRepositories } from '../envs/environment';
+import { DefaultRepositories, RasaBot, SoftwareVersions } from '../types';
+import { createEnvironment } from '../envs/environment';
 
 const region = process.env.CDK_DEPLOY_REGION || process.env.CDK_DEFAULT_REGION || 'eu-north-1';
 const account = process.env.CDK_DEPLOY_ACCOUNT || process.env.CDK_DEFAULT_ACCOUNT || '';
@@ -16,6 +16,11 @@ const defaultRepositories: DefaultRepositories = {
   actionsRepository: '530123621479.dkr.ecr.eu-north-1.amazonaws.com/actions-private:latest',
   botfrontRepository: '530123621479.dkr.ecr.eu-north-1.amazonaws.com/botfront-private:latest',
   rasaBotRepository: '530123621479.dkr.ecr.eu-north-1.amazonaws.com/rasa-private:latest',
+};
+
+const softwareVersions: SoftwareVersions = {
+  frontend: '0.0.7',
+  botfront: '1.0.2'
 };
 
 // Base domain
@@ -58,7 +63,8 @@ const customerenv = createEnvironment(app, {
   env: {account, region},
   envName: customerEnvName,
   rasaBots: customerRasaBots,
-  subDomain: customerSubDomain
+  subDomain: customerSubDomain,
+  softwareVersions
 });
 
 // Demo environment
@@ -86,5 +92,6 @@ const demoenv = createEnvironment(app, {
   env: {account, region},
   envName: demoEnvName,
   rasaBots: demoRasaBots,
-  subDomain: demoSubDomain
+  subDomain: demoSubDomain,
+  softwareVersions
 });
