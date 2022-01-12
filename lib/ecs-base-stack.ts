@@ -113,6 +113,7 @@ export class EcsBaseStack extends cdk.Stack {
     this.baseCluster = new ecs.Cluster(this, `${prefix}ecs-cluster`, {
       vpc: this.baseVpc,
       clusterName: `${props.envName}-cluster`,
+      containerInsights: false,
       defaultCloudMapNamespace: {
         name: `${props.envName}service.internal`,
         vpc: this.baseVpc
