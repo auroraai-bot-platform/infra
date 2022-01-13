@@ -94,7 +94,13 @@ export class EcsBfStack extends cdk.Stack {
       targets: [this.botfrontService],
       protocol: elbv2.ApplicationProtocol.HTTP,
       vpc: props.baseVpc,
-      port: 8888
+      port: 8888,
+      deregistrationDelay: cdk.Duration.seconds(30),
+      healthCheck: {
+        path: '/',
+        healthyThresholdCount: 2,
+        interval: cdk.Duration.seconds(5)
+      }
     });
 
     listener.addTargetGroups(`${prefix}targetgroupadd-botfront`, {

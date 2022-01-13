@@ -137,7 +137,13 @@ export class EcsRasaStack extends cdk.Stack {
         targets: [rasaservice],
         protocol: elbv2.ApplicationProtocol.HTTP,
         vpc: props.baseVpc,
-        port: rasaBot.rasaPort
+        port: rasaBot.rasaPort,
+        deregistrationDelay: cdk.Duration.seconds(30),
+        healthCheck: {
+          path: '/socket.io',
+          healthyThresholdCount: 2,
+          interval: cdk.Duration.seconds(5)
+        }
       });
 
       const actionstg = new elbv2.ApplicationTargetGroup(this, `${prefix}targetgroup-actions-${rasaBot.customerName}`, {
@@ -146,8 +152,11 @@ export class EcsRasaStack extends cdk.Stack {
         vpc: props.baseVpc,
         port: rasaBot.actionsPort,
         healthCheck: {
-          path: "/actions"
-        }
+          path: '/actions',
+          healthyThresholdCount: 2,
+          interval: cdk.Duration.seconds(5)
+        },
+        deregistrationDelay: cdk.Duration.seconds(30)
       });
 
       rasalistener.addTargetGroups(`${prefix}targetgroupadd-rasa-${rasaBot.customerName}`, {
