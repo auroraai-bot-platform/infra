@@ -9,7 +9,8 @@ const envName = 'test';
 const subDomain = 'test';
 const domain = 'test.test';
 const region = 'test';
-const account = '0123456789'
+const account = '0123456789';
+const actionsTag = 'latest';
 
 
 let ecrRepos: RasaBot[] = [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer'}];
@@ -27,9 +28,11 @@ test('Create botfront-stack with one bot', () => {
       region,
       account
     },
-    defaultRepositories
+    defaultRepositories,
+    actionsTag
   });
   const teststack = new EcsBfStack(app, 'MyTestStack', {
+    defaultRepositories,
     envName,
     domain,
     env: {
@@ -73,9 +76,11 @@ test('Create botfront-stack with two bots', () => {
         region,
         account
       },
-      defaultRepositories
+      defaultRepositories,
+      actionsTag
     });
     const teststack = new EcsBfStack(app, 'MyTestStack', {
+      defaultRepositories,
       envName,
       domain,
       env: {

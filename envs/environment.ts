@@ -23,11 +23,13 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
     subDomain: config.subDomain,
     domain: config.domain,
     env: config.env,
+    actionsTag: config.softwareVersions.actions
   });
 
   cdk.Tags.of(ecsBaseStack).add('environment', config.envName)
 
   const ecsBfStack = new EcsBfStack(app, `${config.envName}-botfront-stack`, {
+    defaultRepositories: config.defaultRepositories,
     envName: config.envName,
     baseCluster: ecsBaseStack.baseCluster,
     baseCertificate: ecsBaseStack.baseCertificate,
@@ -42,6 +44,7 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
   cdk.Tags.of(ecsBfStack).add('environment', config.envName)
 
   const rasaBotStack = new EcsRasaStack(app, `${config.envName}-rasa-stack`, {
+    defaultRepositories: config.defaultRepositories,
     envName: config.envName,
     baseCluster: ecsBaseStack.baseCluster,
     baseVpc: ecsBaseStack.baseVpc,
@@ -50,7 +53,9 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
     botfrontService: ecsBfStack.botfrontService,
     rasaBots: config.rasaBots,
     env: config.env,
-    graphqlSecret: ecsBaseStack.graphqlSecret
+    graphqlSecret: ecsBaseStack.graphqlSecret,
+    rasaVersion: config.softwareVersions.rasa,
+    actionsVersion: config.softwareVersions.actions
   });
 
   cdk.Tags.of(rasaBotStack).add('environment', config.envName);

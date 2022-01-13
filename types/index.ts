@@ -18,6 +18,8 @@ export interface RasaBot {
 export interface SoftwareVersions {
   frontend: string;
   botfront: string;
+  rasa: string;
+  actions: string;
 }
 
 export interface EnvironmentConfiguration {

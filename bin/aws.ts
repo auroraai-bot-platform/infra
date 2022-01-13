@@ -13,14 +13,16 @@ console.log({account});
 
 // ECR repositories
 const defaultRepositories: DefaultRepositories = {
-  actionsRepository: '530123621479.dkr.ecr.eu-north-1.amazonaws.com/actions-private:latest',
-  botfrontRepository: '530123621479.dkr.ecr.eu-north-1.amazonaws.com/botfront-private:latest',
-  rasaBotRepository: '530123621479.dkr.ecr.eu-north-1.amazonaws.com/rasa-private:latest',
+  actionsRepository: 'actions-private',
+  botfrontRepository: 'botfront-private',
+  rasaBotRepository: 'rasa-private',
 };
 
-const softwareVersions: SoftwareVersions = {
+var softwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '1.0.2'
+  botfront: '1.0.2',
+  rasa: '2.3.3',
+  actions: '2.1.2-hyte'
 };
 
 // Base domain
@@ -70,6 +72,13 @@ const customerenv = createEnvironment(app, {
 // Demo environment
 const demoEnvName = 'demo';
 const demoSubDomain = `${demoEnvName}.${domain}`;
+
+var softwareVersions: SoftwareVersions = {
+  frontend: '0.0.7',
+  botfront: 'shelf-rasa-node-12',
+  rasa: '2.8.8',
+  actions: '2.8.3'
+};
 
 const demoRasaBots: RasaBot[] = [
   {

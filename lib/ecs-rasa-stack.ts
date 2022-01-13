@@ -4,19 +4,22 @@ import * as ecs from '@aws-cdk/aws-ecs';
 import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as acm from '@aws-cdk/aws-certificatemanager';
-import { BaseStackProps, RasaBot } from '../types';
+import { BaseStackProps, DefaultRepositories, RasaBot } from '../types';
 import { createPrefix } from './utilities';
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 
 interface EcsRasaProps extends BaseStackProps {
+  defaultRepositories: DefaultRepositories;
   baseCluster: ecs.ICluster,
   baseVpc: ec2.IVpc,
   baseLoadbalancer: elbv2.IApplicationLoadBalancer,
   baseCertificate: acm.ICertificate,
   botfrontService: ecs.FargateService,
   rasaBots: RasaBot[],
-  graphqlSecret: Secret
+  graphqlSecret: Secret,
+  rasaVersion: string,
+  actionsVersion: string
 }
 
 export class EcsRasaStack extends cdk.Stack {
@@ -25,7 +28,7 @@ export class EcsRasaStack extends cdk.Stack {
     const prefix = createPrefix(props.envName, this.constructor.name);
 
     for (const rasaBot of props.rasaBots) {
-      const rasarepo = ecr.Repository.fromRepositoryName(this, `${prefix}repository-rasa-${rasaBot.customerName}`, `${props.envName}-rasa-${rasaBot.customerName}`);
+      const rasarepo = ecr.Repository.fromRepositoryName(this, `${prefix}repository-rasa-${rasaBot.customerName}`, props.defaultRepositories.rasaBotRepository);
       const actionsrepo = ecr.Repository.fromRepositoryName(this, `${prefix}repository-actions-${rasaBot.customerName}`, `${props.envName}-actions-${rasaBot.customerName}`);
 
       const rasatd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-${rasaBot.customerName}`, {
@@ -45,7 +48,7 @@ export class EcsRasaStack extends cdk.Stack {
       });
 
       rasatd.addContainer(`${prefix}container-rasa-${rasaBot.customerName}`, {
-        image: ecs.ContainerImage.fromEcrRepository(rasarepo),
+        image: ecs.ContainerImage.fromEcrRepository(rasarepo, props.rasaVersion),
         containerName: `rasa-${rasaBot.customerName}`,
         portMappings: [{
           hostPort: rasaBot.rasaPort,
@@ -73,7 +76,7 @@ export class EcsRasaStack extends cdk.Stack {
       );
 
       actionstd.addContainer(`${prefix}actions`, {
-        image: ecs.ContainerImage.fromEcrRepository(actionsrepo),
+        image: ecs.ContainerImage.fromEcrRepository(actionsrepo, props.actionsVersion),
         containerName: `actions-${rasaBot.customerName}`,
         portMappings: [{
           hostPort: rasaBot.actionsPort,
