@@ -75,9 +75,9 @@ const demoSubDomain = `${demoEnvName}.${domain}`;
 
 var softwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: 'shelf-rasa-node-12',
-  rasa: '2.8.8',
-  actions: '2.8.3'
+  botfront: '1.0.2',
+  rasa: '2.3.3',
+  actions: '2.1.2-hyte'
 };
 
 const demoRasaBots: RasaBot[] = [
