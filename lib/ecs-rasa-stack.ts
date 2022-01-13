@@ -47,6 +47,14 @@ export class EcsRasaStack extends cdk.Stack {
         name: `rasavolume-${rasaBot.customerName}`,
       });
 
+      var command;
+
+      if (props.rasaVersion == '2.8.8') {
+        command = ["run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", props.graphqlSecret.secretValue.toString()]
+      } else {
+        command = ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", props.graphqlSecret.secretValue.toString()]
+      }
+
       rasatd.addContainer(`${prefix}container-rasa-${rasaBot.customerName}`, {
         image: ecs.ContainerImage.fromEcrRepository(rasarepo, props.rasaVersion),
         containerName: `rasa-${rasaBot.customerName}`,
@@ -54,7 +62,7 @@ export class EcsRasaStack extends cdk.Stack {
           hostPort: rasaBot.rasaPort,
           containerPort: rasaBot.rasaPort
         }],
-        command: ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", props.graphqlSecret.secretValue.toString()],
+        command,
         environment: {
           BF_PROJECT_ID: rasaBot.projectId,
           PORT: rasaBot.rasaPort.toString(),
