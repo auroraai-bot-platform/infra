@@ -99,7 +99,8 @@ export class EcsBfStack extends cdk.Stack {
       healthCheck: {
         path: '/',
         healthyThresholdCount: 2,
-        interval: cdk.Duration.seconds(5)
+        interval: cdk.Duration.seconds(10),
+        timeout: cdk.Duration.seconds(5)
       }
     });
 

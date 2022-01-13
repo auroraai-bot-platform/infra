@@ -154,7 +154,8 @@ export class EcsRasaStack extends cdk.Stack {
         healthCheck: {
           path: '/actions',
           healthyThresholdCount: 2,
-          interval: cdk.Duration.seconds(5)
+          interval: cdk.Duration.seconds(10),
+          timeout: cdk.Duration.seconds(5)
         },
         deregistrationDelay: cdk.Duration.seconds(30)
       });
