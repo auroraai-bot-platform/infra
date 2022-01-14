@@ -20,7 +20,7 @@ const defaultRepositories: DefaultRepositories = {
 
 var softwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '1.0.2',
+  botfront: '1.0.5-alpine-meteor-2.3.6',
   rasa: '2.3.3',
   actions: '2.1.2-hyte'
 };
@@ -75,7 +75,7 @@ const demoSubDomain = `${demoEnvName}.${domain}`;
 
 var softwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '1.0.2',
+  botfront: '1.0.5-alpine-meteor-2.3.6',
   rasa: '2.3.3',
   actions: '2.1.2-hyte'
 };
