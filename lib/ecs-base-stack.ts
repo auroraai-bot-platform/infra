@@ -18,6 +18,7 @@ interface EcsBaseProps extends BaseStackProps {
   domain: string;
   subDomain: string;
   ecrRepos: RasaBot[];
+  actionsTag: string;
 }
 
 export class EcsBaseStack extends cdk.Stack {
@@ -59,30 +60,8 @@ export class EcsBaseStack extends cdk.Stack {
       validation: acm.CertificateValidation.fromDns(zone)
     });
 
-    const bfRepo = new ecr.Repository(this, `${prefix}ecr-repository-botfront`, {
-      imageScanOnPush: true,
-      repositoryName: `${props.envName}-botfront`,
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-    });
-
-    new ecrdeploy.ECRDeployment(this, `${prefix}deploy-bf-image`, {
-      src: new ecrdeploy.DockerImageName(props.defaultRepositories.botfrontRepository),
-      dest: new ecrdeploy.DockerImageName(`${bfRepo.repositoryUri}:latest`),
-    });
-
-
+    const actionsBaseRepo = ecr.Repository.fromRepositoryName(this, `${prefix}ecr-actions`, props.defaultRepositories.actionsRepository)
     for (const ecrRepoConfig of props.ecrRepos) {
-      const rasaRepo = new ecr.Repository(this, `${prefix}ecr-repository-rasa-${ecrRepoConfig.customerName}`, {
-        imageScanOnPush: true,
-        repositoryName: `${props.envName}-rasa-${ecrRepoConfig.customerName}`,
-        removalPolicy: cdk.RemovalPolicy.RETAIN,
-      });
-
-      new ecrdeploy.ECRDeployment(this, `${prefix}deploy-rasa-image-${ecrRepoConfig.customerName}`, {
-        src: new ecrdeploy.DockerImageName(props.defaultRepositories.rasaBotRepository),
-        dest: new ecrdeploy.DockerImageName(`${rasaRepo.repositoryUri}:latest`),
-      });
-
       const actionsRepo = new ecr.Repository(this, `${prefix}ecr-repository-actions-${ecrRepoConfig.customerName}`, {
         imageScanOnPush: true,
         repositoryName: `${props.envName}-actions-${ecrRepoConfig.customerName}`,
@@ -90,8 +69,8 @@ export class EcsBaseStack extends cdk.Stack {
       });
 
       new ecrdeploy.ECRDeployment(this, `${prefix}deploy-actions-image-${ecrRepoConfig.customerName}`, {
-        src: new ecrdeploy.DockerImageName(props.defaultRepositories.actionsRepository),
-        dest: new ecrdeploy.DockerImageName(`${actionsRepo.repositoryUri}:latest`),
+        src: new ecrdeploy.DockerImageName(`${actionsBaseRepo.repositoryUri}:${props.actionsTag}`),
+        dest: new ecrdeploy.DockerImageName(`${actionsRepo.repositoryUri}:${props.actionsTag}`),
       });
     }
 

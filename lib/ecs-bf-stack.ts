@@ -7,11 +7,12 @@ import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as s3 from '@aws-cdk/aws-s3';
 
-import { BaseStackProps } from '../types';
+import { BaseStackProps, DefaultRepositories } from '../types';
 import { createPrefix } from './utilities';
 import { RetentionDays } from '@aws-cdk/aws-logs';
 
 interface EcsBfProps extends BaseStackProps {
+  defaultRepositories: DefaultRepositories;
   baseCluster: ecs.Cluster,
   baseVpc: ec2.Vpc,
   baseLoadbalancer: elbv2.ApplicationLoadBalancer,
@@ -29,7 +30,7 @@ export class EcsBfStack extends cdk.Stack {
     super(scope, id, props);
 
     const prefix = createPrefix(props.envName, this.constructor.name);
-    const bfrepo = ecr.Repository.fromRepositoryName(this, `${prefix}repository-botfront`, `${props.envName}-botfront`);
+    const bfrepo = ecr.Repository.fromRepositoryName(this, `${prefix}repository-botfront`, props.defaultRepositories.botfrontRepository);
 
     const fileBucket = new s3.Bucket(this, `${prefix}file-bucket`, { bucketName: `${prefix}file-bucket`, publicReadAccess: true });
 
@@ -93,7 +94,14 @@ export class EcsBfStack extends cdk.Stack {
       targets: [this.botfrontService],
       protocol: elbv2.ApplicationProtocol.HTTP,
       vpc: props.baseVpc,
-      port: 8888
+      port: 8888,
+      deregistrationDelay: cdk.Duration.seconds(30),
+      healthCheck: {
+        path: '/',
+        healthyThresholdCount: 2,
+        interval: cdk.Duration.seconds(10),
+        timeout: cdk.Duration.seconds(5)
+      }
     });
 
     listener.addTargetGroups(`${prefix}targetgroupadd-botfront`, {

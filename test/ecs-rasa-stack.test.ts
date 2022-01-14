@@ -10,7 +10,9 @@ const envName = 'test';
 const subDomain = 'test';
 const domain = 'test.test';
 const region = 'test';
-const account = '0123456789'
+const account = '0123456789';
+const actionsTag = 'latest';
+const rasaTag = 'latest';
 
 let ecrRepos: RasaBot[] = [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer'}];
 
@@ -27,9 +29,11 @@ test('Create rasa-stack with one bot', () => {
       region,
       account
     },
-    defaultRepositories
+    defaultRepositories,
+    actionsTag
   });
   const bfstack = new EcsBfStack(app, 'MyBfStack', {
+    defaultRepositories,
     envName,
     domain,
     env: {
@@ -45,6 +49,7 @@ test('Create rasa-stack with one bot', () => {
     botfrontVersion: softwareVersions.botfront
   });
   const teststack = new EcsRasaStack(app, 'MyTestStack', {
+    defaultRepositories,
     envName,
     env: {
       region,
@@ -56,7 +61,9 @@ test('Create rasa-stack with one bot', () => {
     baseVpc: basestack.baseVpc,
     botfrontService: bfstack.botfrontService,
     rasaBots: ecrRepos,
-    graphqlSecret: basestack.graphqlSecret
+    graphqlSecret: basestack.graphqlSecret,
+    actionsVersion: actionsTag,
+    rasaVersion: rasaTag
   });
   // THEN
   expectCDK(teststack).to(countResources('AWS::ECS::TaskDefinition', 2)
@@ -88,9 +95,11 @@ test('Create rasa-stack with two bots', () => {
       region,
       account
     },
-    defaultRepositories
+    defaultRepositories,
+    actionsTag
   });
   const bfstack = new EcsBfStack(app, 'MyBfStack', {
+    defaultRepositories,
     envName,
     domain,
     env: {
@@ -106,6 +115,7 @@ test('Create rasa-stack with two bots', () => {
     botfrontVersion: softwareVersions.botfront
   });
   const teststack = new EcsRasaStack(app, 'MyTestStack', {
+    defaultRepositories,
     envName,
     env: {
       region,
@@ -117,7 +127,9 @@ test('Create rasa-stack with two bots', () => {
     baseVpc: basestack.baseVpc,
     botfrontService: bfstack.botfrontService,
     rasaBots: ecrRepos,
-    graphqlSecret: basestack.graphqlSecret
+    graphqlSecret: basestack.graphqlSecret,
+    actionsVersion: actionsTag,
+    rasaVersion: rasaTag
   });
   // THEN
   expectCDK(teststack).to(countResources('AWS::ECS::TaskDefinition', 4)
