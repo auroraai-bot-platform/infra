@@ -110,3 +110,33 @@ const demoenv = createEnvironment(app, {
   subDomain: demoSubDomain,
   softwareVersions
 });
+
+
+
+// TEST environment temporary
+const testEnvName = 'test';
+const testSubDomain = `${testEnvName}.${domain}`;
+
+const testRasaBots: RasaBot[] = [
+  {
+    rasaPort: 5009,
+    actionsPort: 5059,
+    projectId: 'uzsgYf3m6FWfufPcr',
+    customerName: 'testbot1'
+  }
+];
+
+const testenv = createEnvironment(app, {
+  domain,
+  defaultRepositories,
+  env: {account, region},
+  envName: testEnvName,
+  rasaBots: testRasaBots,
+  subDomain: testSubDomain,
+  softwareVersions: {
+    frontend: softwareVersions. frontend,
+    actions: softwareVersions.actions,
+    rasa: '3.0.0',
+    botfront: '3.0.0'
+  }
+});
