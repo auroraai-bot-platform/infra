@@ -43,14 +43,6 @@ export class EcsRasaStack extends cdk.Stack {
         name: `rasavolume-${rasaBot.customerName}`,
       });
 
-      var command;
-
-      if (props.rasaVersion == '2.8.8') {
-        command = ["run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", props.graphqlSecret.secretValue.toString()]
-      } else {
-        command = ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", props.graphqlSecret.secretValue.toString()]
-      }
-
       rasatd.addContainer(`${prefix}container-rasa-${rasaBot.customerName}`, {
         image: ecs.ContainerImage.fromEcrRepository(rasarepo, props.rasaVersion),
         containerName: `rasa-${rasaBot.customerName}`,
@@ -58,7 +50,7 @@ export class EcsRasaStack extends cdk.Stack {
           hostPort: rasaBot.rasaPort,
           containerPort: rasaBot.rasaPort
         }],
-        command,
+        command: ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", props.graphqlSecret.secretValue.toString()],
         environment: {
           BF_PROJECT_ID: rasaBot.projectId,
           PORT: rasaBot.rasaPort.toString(),
@@ -125,88 +117,6 @@ export class EcsRasaStack extends cdk.Stack {
       rasaservice.connections.allowFrom(props.botfrontService, ec2.Port.tcp(rasaBot.rasaPort));
       rasaservice.connections.allowFrom(props.botfrontService, ec2.Port.tcp(rasaBot.actionsPort));
 
-      // Rasa #2
-      if (rasaBot.rasaPortProd != undefined) {
-        const modelBucket = Bucket.fromBucketName(this, `${prefix}model-bucket`, `${prefix}model-bucket`)
-        const rasaProdtd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-prod-${rasaBot.customerName}`, {
-          cpu: '1024',
-          memoryMiB: '2048',
-          compatibility: ecs.Compatibility.FARGATE
-        });
-
-        if (props.rasaVersion == '2.8.8') {
-          command = ["run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", props.graphqlSecret.secretValue.toString()]
-        } else {
-          command = ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", props.graphqlSecret.secretValue.toString()]
-        }
-  
-        modelBucket.grantRead(rasaProdtd.taskRole, `model-${rasaBot.projectId}.tar.gz`);
-  
-        rasaProdtd.addContainer(`${prefix}container-rasa-prod-${rasaBot.customerName}`, {
-          image: ecs.ContainerImage.fromEcrRepository(rasarepo, props.rasaVersion),
-          containerName: `rasa-prod-${rasaBot.customerName}`,
-          portMappings: [{
-            hostPort: rasaBot.rasaPortProd,
-            containerPort: rasaBot.rasaPortProd
-          }],
-          command,
-          environment: {
-            BF_PROJECT_ID: rasaBot.projectId,
-            PORT: rasaBot.rasaPort.toString(),
-            BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`,
-            BUCKET_NAME: modelBucket.bucketName,
-            AWS_ENDPOINT_URL: `https://${modelBucket.bucketRegionalDomainName}`
-          },
-          secrets: {
-            API_KEY: ecs.Secret.fromSecretsManager(props.graphqlSecret)
-          },
-          logging: ecs.LogDriver.awsLogs({
-            streamPrefix: `${prefix}container-rasa-prod-${rasaBot.customerName}`,
-            logRetention: RetentionDays.ONE_DAY
-          })
-        });
-  
-        const rasaprodservice = new ecs.FargateService(this, `${prefix}service-rasa-prod-${rasaBot.customerName}`, {
-          cluster: props.baseCluster,
-          taskDefinition: rasaProdtd,
-          cloudMapOptions: {
-            name: `rasa-prod-${rasaBot.customerName}`
-          },
-          serviceName: `${props.envName}-service-rasa-prod-${rasaBot.customerName}`
-        });
-  
-        const rasaprodlistener = new elbv2.ApplicationListener(this, `${prefix}listener-rasa-prod-${rasaBot.customerName}`, {
-          loadBalancer: props.baseLoadbalancer,
-          port: rasaBot.rasaPortProd,
-          protocol: elbv2.ApplicationProtocol.HTTPS,
-          certificates: [props.baseCertificate]
-        });
-  
-        const rasaprodtg = new elbv2.ApplicationTargetGroup(this, `${prefix}targetgroup-rasa-prod-${rasaBot.customerName}`, {
-          targets: [rasaprodservice],
-          protocol: elbv2.ApplicationProtocol.HTTP,
-          vpc: props.baseVpc,
-          port: rasaBot.rasaPortProd
-        });
-  
-        rasaprodlistener.addTargetGroups(`${prefix}targetgroupadd-rasa-prod-${rasaBot.customerName}`, {
-          targetGroups: [rasaprodtg],
-          priority: 1,
-          conditions: [
-            elbv2.ListenerCondition.pathPatterns(['/socket.io', '/socket.io/*'])
-          ]
-        });
-  
-        rasaprodlistener.addAction(`${prefix}blockdefault-rasa-prod-${rasaBot.customerName}`, {
-          action: elbv2.ListenerAction.fixedResponse(403)
-        });
-  
-        rasaprodservice.connections.allowFrom(props.baseLoadbalancer, ec2.Port.tcp(rasaBot.rasaPortProd));
-        rasaprodservice.connections.allowFrom(props.botfrontService, ec2.Port.tcp(rasaBot.rasaPortProd));
-        rasaprodservice.connections.allowFrom(props.botfrontService, ec2.Port.tcp(rasaBot.actionsPort));
-  
-      }
-
       // Actions
       const actionsrepo = ecr.Repository.fromRepositoryName(this, `${prefix}repository-actions-${rasaBot.customerName}`, `${props.envName}-actions-${rasaBot.customerName}`);
 
@@ -271,6 +181,81 @@ export class EcsRasaStack extends cdk.Stack {
 
       actionsservice.connections.allowFrom(props.botfrontService, ec2.Port.tcp(rasaBot.actionsPort));
       actionsservice.connections.allowFrom(rasaservice, ec2.Port.tcp(rasaBot.actionsPort));
+
+      // Rasa #2
+      if (rasaBot.rasaPortProd != undefined) {
+        const modelBucket = Bucket.fromBucketName(this, `${prefix}model-bucket`, `${prefix}model-bucket`)
+        const rasaProdtd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-prod-${rasaBot.customerName}`, {
+          cpu: '1024',
+          memoryMiB: '2048',
+          compatibility: ecs.Compatibility.FARGATE
+        });
+  
+        modelBucket.grantRead(rasaProdtd.taskRole, `model-${rasaBot.projectId}.tar.gz`);
+  
+        rasaProdtd.addContainer(`${prefix}container-rasa-prod-${rasaBot.customerName}`, {
+          image: ecs.ContainerImage.fromEcrRepository(rasarepo, props.rasaVersion),
+          containerName: `rasa-prod-${rasaBot.customerName}`,
+          portMappings: [{
+            hostPort: rasaBot.rasaPortProd,
+            containerPort: rasaBot.rasaPortProd
+          }],
+          command: ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPortProd.toString(), "--auth-token", props.graphqlSecret.secretValue.toString()],
+          environment: {
+            BF_PROJECT_ID: rasaBot.projectId,
+            PORT: rasaBot.rasaPort.toString(),
+            BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`,
+            BUCKET_NAME: modelBucket.bucketName
+          },
+          secrets: {
+            API_KEY: ecs.Secret.fromSecretsManager(props.graphqlSecret)
+          },
+          logging: ecs.LogDriver.awsLogs({
+            streamPrefix: `${prefix}container-rasa-prod-${rasaBot.customerName}`,
+            logRetention: RetentionDays.ONE_DAY
+          })
+        });
+  
+        const rasaprodservice = new ecs.FargateService(this, `${prefix}service-rasa-prod-${rasaBot.customerName}`, {
+          cluster: props.baseCluster,
+          taskDefinition: rasaProdtd,
+          cloudMapOptions: {
+            name: `rasa-prod-${rasaBot.customerName}`
+          },
+          serviceName: `${props.envName}-service-rasa-prod-${rasaBot.customerName}`
+        });
+  
+        const rasaprodlistener = new elbv2.ApplicationListener(this, `${prefix}listener-rasa-prod-${rasaBot.customerName}`, {
+          loadBalancer: props.baseLoadbalancer,
+          port: rasaBot.rasaPortProd,
+          protocol: elbv2.ApplicationProtocol.HTTPS,
+          certificates: [props.baseCertificate]
+        });
+  
+        const rasaprodtg = new elbv2.ApplicationTargetGroup(this, `${prefix}targetgroup-rasa-prod-${rasaBot.customerName}`, {
+          targets: [rasaprodservice],
+          protocol: elbv2.ApplicationProtocol.HTTP,
+          vpc: props.baseVpc,
+          port: rasaBot.rasaPortProd
+        });
+  
+        rasaprodlistener.addTargetGroups(`${prefix}targetgroupadd-rasa-prod-${rasaBot.customerName}`, {
+          targetGroups: [rasaprodtg],
+          priority: 1,
+          conditions: [
+            elbv2.ListenerCondition.pathPatterns(['/socket.io', '/socket.io/*'])
+          ]
+        });
+  
+        rasaprodlistener.addAction(`${prefix}blockdefault-rasa-prod-${rasaBot.customerName}`, {
+          action: elbv2.ListenerAction.fixedResponse(403)
+        });
+  
+        rasaprodservice.connections.allowFrom(props.baseLoadbalancer, ec2.Port.tcp(rasaBot.rasaPortProd));
+        rasaprodservice.connections.allowFrom(props.botfrontService, ec2.Port.tcp(rasaBot.rasaPortProd));
+        rasaprodservice.connections.allowFrom(props.botfrontService, ec2.Port.tcp(rasaBot.actionsPort));
+        actionsservice.connections.allowFrom(rasaprodservice, ec2.Port.tcp(rasaBot.actionsPort));
+      }
     }
   }
 }

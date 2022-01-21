@@ -18,7 +18,7 @@ const defaultRepositories: DefaultRepositories = {
   rasaBotRepository: 'rasa-private',
 };
 
-var softwareVersions: SoftwareVersions = {
+let softwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
   botfront: '1.0.5-alpine-meteor-2.3.6',
   rasa: '2.3.3',
@@ -79,11 +79,11 @@ const customerenv = createEnvironment(app, {
 const demoEnvName = 'demo';
 const demoSubDomain = `${demoEnvName}.${domain}`;
 
-var softwareVersions: SoftwareVersions = {
+softwareVersions = {
   frontend: '0.0.7',
-  botfront: '1.0.5-alpine-meteor-2.3.6',
-  rasa: '2.3.3',
-  actions: '2.1.2-hyte'
+  botfront: '3.0.1',
+  rasa: '3.0.2',
+  actions: '2.8.3-hyte'
 };
 
 const demoRasaBots: RasaBot[] = [
@@ -135,9 +135,9 @@ const testenv = createEnvironment(app, {
   rasaBots: testRasaBots,
   subDomain: testSubDomain,
   softwareVersions: {
-    frontend: softwareVersions. frontend,
-    actions: softwareVersions.actions,
-    rasa: '3.0.0',
-    botfront: '3.0.0'
+    frontend: softwareVersions.frontend,
+    actions: '2.8.3-hyte',
+    rasa: '3.0.1',
+    botfront: '3.0.1'
   }
 });
