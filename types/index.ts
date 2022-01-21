@@ -9,6 +9,7 @@ export interface RasaBot {
   customerName: string;
   projectId: string;
   rasaPort: number;
+  rasaPortProd?: number;
   additionalConfig?: {
     intents: {
       [intentPath: string]: string;

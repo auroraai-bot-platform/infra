@@ -89,6 +89,7 @@ var softwareVersions: SoftwareVersions = {
 const demoRasaBots: RasaBot[] = [
   {
     rasaPort: 5006,
+    rasaPortProd: 10006,
     actionsPort: 5055,
     projectId: 'hH4Z8S7GXiHsp3PTP',
     customerName: 'demo-1'

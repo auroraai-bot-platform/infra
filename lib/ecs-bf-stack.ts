@@ -33,6 +33,7 @@ export class EcsBfStack extends cdk.Stack {
     const bfrepo = ecr.Repository.fromRepositoryName(this, `${prefix}repository-botfront`, props.defaultRepositories.botfrontRepository);
 
     const fileBucket = new s3.Bucket(this, `${prefix}file-bucket`, { bucketName: `${prefix}file-bucket`, publicReadAccess: true });
+    const modelBucket = new s3.Bucket(this, `${prefix}model-bucket`, { bucketName: `${prefix}model-bucket` });
 
     const botfronttd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-botfront`, {
       cpu: '1024',
@@ -42,6 +43,8 @@ export class EcsBfStack extends cdk.Stack {
 
     fileBucket.grantReadWrite(botfronttd.taskRole);
     fileBucket.grantDelete(botfronttd.taskRole);
+    modelBucket.grantReadWrite(botfronttd.taskRole);
+    modelBucket.grantDelete(botfronttd.taskRole);
 
     botfronttd.addContainer(`${prefix}container-botfront`, {
       image: ecs.ContainerImage.fromEcrRepository(bfrepo, props.botfrontVersion),
@@ -61,6 +64,7 @@ export class EcsBfStack extends cdk.Stack {
         REST_API_PORT: '3030',
         ROOT_URL: `https://${props.envName}.${props.domain}`,
         FILE_BUCKET: fileBucket.bucketName,
+        MODEL_BUCKET: modelBucket.bucketName,
         FILE_PREFIX: 'files/',
         FILE_SIZE_LIMIT: `${1024 * 1024}`
       },
