@@ -184,7 +184,7 @@ export class EcsRasaStack extends cdk.Stack {
 
       // Rasa #2
       if (rasaBot.rasaPortProd != undefined) {
-        const modelBucket = Bucket.fromBucketName(this, `${prefix}model-bucket`, `${prefix}model-bucket`)
+        const modelBucket = Bucket.fromBucketName(this, `${prefix}model-bucket-${rasaBot.customerName}`, `${prefix}model-bucket`)
         const rasaProdtd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-prod-${rasaBot.customerName}`, {
           cpu: '1024',
           memoryMiB: '2048',
