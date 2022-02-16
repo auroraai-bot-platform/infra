@@ -6,10 +6,14 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as s3 from '@aws-cdk/aws-s3';
+import * as lambda from '@aws-cdk/aws-lambda';
+import * as customResources from '@aws-cdk/custom-resources';
+import * as iam from '@aws-cdk/aws-iam';
 
-import { BaseStackProps, DefaultRepositories } from '../types';
+import { BaseStackProps, DefaultRepositories, LambdaRequest, Project, RasaBot } from '../types';
 import { createPrefix } from './utilities';
 import { RetentionDays } from '@aws-cdk/aws-logs';
+import cluster from 'cluster';
 
 interface EcsBfProps extends BaseStackProps {
   defaultRepositories: DefaultRepositories;
@@ -21,7 +25,13 @@ interface EcsBfProps extends BaseStackProps {
   mongoSecret: secrets.Secret,
   graphqlSecret: secrets.Secret,
   botfrontVersion: string;
+  projectCreationVersion: string;
+  sourceBucketName: string;
+  rasaBots: RasaBot[];
 }
+
+const restApiPort = 3030;
+const webServicePort = 8888;
 
 export class EcsBfStack extends cdk.Stack {
   public readonly botfrontService: ecs.FargateService;
@@ -51,17 +61,17 @@ export class EcsBfStack extends cdk.Stack {
       containerName: 'botfront',
       portMappings: [
         {
-          hostPort: 8888,
-          containerPort: 8888
+          hostPort: webServicePort,
+          containerPort: webServicePort
         }, 
         {
-          hostPort: 3030,
-          containerPort: 3030
+          hostPort: restApiPort,
+          containerPort: restApiPort
         }
       ],
       environment: {
-        PORT: '8888',
-        REST_API_PORT: '3030',
+        PORT: webServicePort.toString(),
+        REST_API_PORT: restApiPort.toString(),
         ROOT_URL: `https://${props.envName}.${props.domain}`,
         FILE_BUCKET: fileBucket.bucketName,
         MODEL_BUCKET: modelBucket.bucketName,
@@ -98,7 +108,7 @@ export class EcsBfStack extends cdk.Stack {
       targets: [this.botfrontService],
       protocol: elbv2.ApplicationProtocol.HTTP,
       vpc: props.baseVpc,
-      port: 8888,
+      port: webServicePort,
       deregistrationDelay: cdk.Duration.seconds(30),
       healthCheck: {
         path: '/',
@@ -112,7 +122,77 @@ export class EcsBfStack extends cdk.Stack {
       targetGroups: [tg]
     });
 
+    if (!props.baseCluster.defaultCloudMapNamespace) {
+      throw new Error('Cluster Namespace not defined');
+    }
+    const botfrontInternalUrl = `http://${this.botfrontService.cloudMapService?.serviceName}.${props.baseCluster.defaultCloudMapNamespace.namespaceName}:${restApiPort}`;
+
+    const lambdaRequest: LambdaRequest = {
+      botfrontBaseUrl: botfrontInternalUrl,
+      projects: props.rasaBots.filter((bot) => new RegExp('-').test(bot.customerName) === false).map<Project>((bot) => {
+        return {
+          name: bot.customerName,
+          nameSpace: `bf-${bot.customerName}`,
+          baseUrl: `http://rasa-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.rasaPort}`,
+          projectId: bot.projectId
+        }
+      })
+    };
+
+
+    // lambda to create botfront project for each rasa bot
+    const codeBucket = s3.Bucket.fromBucketName(this, props.sourceBucketName, props.sourceBucketName);
+
+    const projectCreationLambda = new lambda.SingletonFunction(this, `${prefix}project-creation`, {
+      uuid: 'c3cec8a4-65a9-4305-8372-b3e9444e4bae',
+      functionName: `${props.envName}-botfront-project-creation-singleton`,
+      runtime: lambda.Runtime.NODEJS_14_X,
+      handler: 'index.handler',
+      code: new lambda.S3Code(codeBucket, `project-creation/${props.projectCreationVersion}.zip`),
+      vpc: props.baseVpc,
+      vpcSubnets:  {subnets: props.baseVpc.privateSubnets},
+      environment: {
+        VERSION: props.projectCreationVersion,
+        BOTFRONT_URL: botfrontInternalUrl
+      }
+    });
+
+
+    const lambdaTrigger = new customResources.AwsCustomResource(this, `${prefix}project-creation-lambda-trigger`, {
+      functionName: `${props.envName}-botfront-project-creation-trigger`,
+      policy: customResources.AwsCustomResourcePolicy.fromStatements([new iam.PolicyStatement({
+        actions: ['lambda:InvokeFunction'],
+        effect: iam.Effect.ALLOW,
+        resources: [projectCreationLambda.functionArn]
+      })]),
+      timeout: cdk.Duration.minutes(15),
+      onCreate: {
+        service: 'Lambda',
+        action: 'invoke',
+        parameters: {
+          FunctionName: projectCreationLambda.functionName,
+          InvocationType: 'Event',
+          Payload: JSON.stringify(lambdaRequest)
+        },
+        physicalResourceId: customResources.PhysicalResourceId.of(`${props.envName}-botfront-project-creation-trigger`)
+      },
+      onUpdate: {
+        service: 'Lambda',
+        action: 'invoke',
+        parameters: {
+          FunctionName: projectCreationLambda.functionName,
+          InvocationType: 'Event',
+          Payload: JSON.stringify(lambdaRequest)
+        },
+        physicalResourceId: customResources.PhysicalResourceId.of(`${props.envName}-botfront-project-creation-trigger`)
+      }
+    });
+
+
     this.botfrontService.connections.allowFrom(props.baseLoadbalancer, ec2.Port.tcp(443));
-    this.botfrontService.connections.allowFromAnyIpv4(ec2.Port.tcp(8888));
+    this.botfrontService.connections.allowFromAnyIpv4(ec2.Port.tcp(webServicePort));
+    this.botfrontService.connections.allowFrom(projectCreationLambda, ec2.Port.tcp(restApiPort));
+
+    console.log('url', botfrontInternalUrl);
   }
 }

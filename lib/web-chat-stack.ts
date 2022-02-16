@@ -18,9 +18,9 @@ interface WebChatProps extends BaseStackProps {
   rasaBots: RasaBot[];
   subDomain: string;
   frontendVersion: string;
+  sourceBucketName: string;
 }
 
-const sourceBucketName = 'auroraai-source-code-bucket';
 export class WebChatStack extends cdk.Stack {
   public readonly rasaBotAddressMap: Map<RasaBot, string> = new Map<RasaBot, string>();
 
@@ -32,7 +32,7 @@ export class WebChatStack extends cdk.Stack {
     const cloudfrontAI = new cloudfront.OriginAccessIdentity(this, `${prefix}distribution-access-identity`, {
     });
 
-    const codeBucket = s3.Bucket.fromBucketName(this, sourceBucketName, sourceBucketName);
+    const codeBucket = s3.Bucket.fromBucketName(this, props.sourceBucketName, props.sourceBucketName);
 
     frontendBucket.grantRead(cloudfrontAI);
 

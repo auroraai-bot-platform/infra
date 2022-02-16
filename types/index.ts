@@ -21,6 +21,7 @@ export interface SoftwareVersions {
   botfront: string;
   rasa: string;
   actions: string;
+  projectCreation: string;
 }
 
 export interface EnvironmentConfiguration {
@@ -34,10 +35,23 @@ export interface EnvironmentConfiguration {
   subDomain: string;
   defaultRepositories: DefaultRepositories;
   softwareVersions: SoftwareVersions;
+  sourceBucketName: string;
 }
 
 export interface DefaultRepositories {
   botfrontRepository: string;
   rasaBotRepository: string;
   actionsRepository: string;
+}
+
+export interface LambdaRequest {
+  botfrontBaseUrl: string;
+  projects: Project[];
+}
+
+export interface Project {
+  baseUrl: string;
+  name: string;
+  nameSpace: string;
+  projectId: string;
 }

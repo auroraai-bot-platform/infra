@@ -7,6 +7,8 @@ import { createEnvironment } from '../envs/environment';
 const region = process.env.CDK_DEPLOY_REGION || process.env.CDK_DEFAULT_REGION || 'eu-north-1';
 const account = process.env.CDK_DEPLOY_ACCOUNT || process.env.CDK_DEFAULT_ACCOUNT || '';
 
+const sourceBucketName = 'auroraai-source-code-bucket';
+
 const app = new cdk.App();
 
 console.log({account});
@@ -22,7 +24,8 @@ const customerSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
   botfront: '3.0.6',
   rasa: '3.0.2',
-  actions: '2.1.2-hyte'
+  actions: '2.1.2-hyte',
+  projectCreation: '0.0.2'
 };
 
 // Base domain
@@ -84,7 +87,8 @@ const customerenv = createEnvironment(app, {
   envName: customerEnvName,
   rasaBots: customerRasaBots,
   subDomain: customerSubDomain,
-  softwareVersions: customerSoftwareVersions
+  softwareVersions: customerSoftwareVersions,
+  sourceBucketName
 });
 
 // Demo environment
@@ -93,9 +97,10 @@ const demoSubDomain = `${demoEnvName}.${domain}`;
 
 const demoSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '3.0.5',
+  botfront: '3.0.7-alpha',
   rasa: '3.0.2',
-  actions: '2.8.3-hyte'
+  actions: '2.8.3-hyte',
+  projectCreation: '0.0.1-build2'
 };
 
 const demoRasaBots: RasaBot[] = [
@@ -111,6 +116,19 @@ const demoRasaBots: RasaBot[] = [
     actionsPort: 5057,
     projectId: 'C6y53duQKrDhBqFRp',
     customerName: 'palmu-demo'
+  },
+  {
+    rasaPort: 5008,
+    rasaPortProd: 10008,
+    actionsPort: 5058,
+    projectId: 'testbot',
+    customerName: 'testbot'
+  },
+  {
+    rasaPort: 5009,
+    actionsPort: 5059,
+    projectId: 'palmu',
+    customerName: 'palmu'
   }
 ];
 
@@ -121,5 +139,6 @@ const demoenv = createEnvironment(app, {
   envName: demoEnvName,
   rasaBots: demoRasaBots,
   subDomain: demoSubDomain,
-  softwareVersions: demoSoftwareVersions
+  softwareVersions: demoSoftwareVersions,
+  sourceBucketName
 });

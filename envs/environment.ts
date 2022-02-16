@@ -7,12 +7,20 @@ import { EnvironmentConfiguration } from '../types';
 
 
 export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration) {
-  const allPorts = config.rasaBots.map(bot => [bot.actionsPort, bot.rasaPort]).flat();
-  const uniquePortCount: number = new Set(allPorts).size;
+  const allPorts = config.rasaBots.map(bot => [bot.actionsPort, bot.rasaPort, bot.rasaPortProd]).flat().filter((port) => port != undefined);
+  const uniquePortCount = new Set(allPorts).size;
   const portCollision = uniquePortCount !== allPorts.length;
 
   if (portCollision) {
     throw new Error(`Env: ${config.envName}. Cannot create environment because of colliding port configurations. ${JSON.stringify(config.rasaBots)}`);
+  }
+
+  const allProjectIds = config.rasaBots.map(bot => bot.projectId);
+  const unqiueProjectIdCount = new Set(allProjectIds).size;
+  const projectIdCollision = unqiueProjectIdCount !== allProjectIds.length;
+
+  if (projectIdCollision) {
+    throw new Error(`Env: ${config.envName}. Cannot create environment because of colliding projectId configurations. ${JSON.stringify(config.rasaBots)}`);
   }
 
   // Demo-ecs env
@@ -39,7 +47,10 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
     env: config.env,
     mongoSecret: ecsBaseStack.mongoSecret,
     graphqlSecret: ecsBaseStack.graphqlSecret,
-    botfrontVersion: config.softwareVersions.botfront
+    botfrontVersion: config.softwareVersions.botfront,
+    projectCreationVersion: config.softwareVersions.projectCreation,
+    sourceBucketName: config.sourceBucketName,
+    rasaBots: config.rasaBots
   });
   cdk.Tags.of(ecsBfStack).add('environment', config.envName)
 
@@ -66,7 +77,8 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
     rasaBots: config.rasaBots,
     domain: config.domain,
     subDomain: config.subDomain,
-    frontendVersion: config.softwareVersions.frontend
+    frontendVersion: config.softwareVersions.frontend,
+    sourceBucketName: config.sourceBucketName
   });
 
   return { ecsBaseStack, EcsBfStack, rasaBotStack };
