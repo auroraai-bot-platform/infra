@@ -10,6 +10,7 @@ export interface RasaBot {
   projectId: string;
   rasaPort: number;
   rasaPortProd?: number;
+  hasProd?: boolean;
   additionalConfig?: {
     intents: {
       [intentPath: string]: string;
@@ -54,4 +55,12 @@ export interface Project {
   name: string;
   nameSpace: string;
   projectId: string;
+  host: string;
+  token?: string;
+  actionEndpoint: string;
+  prodBaseUrl?: string;
+  prodHost?: string;
+  prodToken?: string;
+  prodActionEndpoint?: string;
+  hasProd?: boolean;
 }

@@ -133,8 +133,16 @@ export class EcsBfStack extends cdk.Stack {
         return {
           name: bot.customerName,
           nameSpace: `bf-${bot.customerName}`,
-          baseUrl: `http://rasa-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.rasaPort}`,
-          projectId: bot.projectId
+          projectId: bot.projectId,
+          host: `http://rasa-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.rasaPort}`,
+          token: props.graphqlSecret.secretValue.toString(),
+          baseUrl: `https://${props.envName}.${props.domain}:${bot.rasaPort}`,
+          actionEndpoint: `http://action-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}`,
+          hasProd: bot.hasProd,
+          prodHost: `http://rasa-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.rasaPort}`,
+          prodBaseUrl: `https://${props.envName}.${props.domain}:${bot.rasaPort}`,
+          prodActionEndpoint: `http://action-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}`,
+          prodToken: props.graphqlSecret.secretValue.toString(),
         }
       })
     };

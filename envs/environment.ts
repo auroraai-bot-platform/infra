@@ -5,9 +5,11 @@ import { EcsRasaStack } from '../lib/ecs-rasa-stack';
 import { WebChatStack } from '../lib/web-chat-stack';
 import { EnvironmentConfiguration } from '../types';
 
+const validProjectNameRegExp = new RegExp('^[a-zA-Z0-9]+$');
+
 
 export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration) {
-  const allPorts = config.rasaBots.map(bot => [bot.actionsPort, bot.rasaPort, bot.rasaPortProd]).flat().filter((port) => port != undefined);
+  const allPorts = config.rasaBots.map(bot => [bot.rasaPort, bot.rasaPortProd]).flat().filter((port) => port != undefined);
   const uniquePortCount = new Set(allPorts).size;
   const portCollision = uniquePortCount !== allPorts.length;
 
@@ -22,6 +24,12 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
   if (projectIdCollision) {
     throw new Error(`Env: ${config.envName}. Cannot create environment because of colliding projectId configurations. ${JSON.stringify(config.rasaBots)}`);
   }
+
+  const invalidCustomerNames = config.rasaBots.filter((bot) => validProjectNameRegExp.test(bot.customerName) === false).map((bot) => bot.customerName);
+
+  // if (invalidCustomerNames.length > 0) {
+  //   throw new Error(`Env: ${config.envName}. Cannot create environment because of invalid customerNames. ${JSON.stringify(invalidCustomerNames)}`);
+  // }
 
   // Demo-ecs env
   const ecsBaseStack = new EcsBaseStack(app, `${config.envName}-base-stack`, {
@@ -50,7 +58,7 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
     botfrontVersion: config.softwareVersions.botfront,
     projectCreationVersion: config.softwareVersions.projectCreation,
     sourceBucketName: config.sourceBucketName,
-    rasaBots: config.rasaBots
+    rasaBots: config.rasaBots,
   });
   cdk.Tags.of(ecsBfStack).add('environment', config.envName)
 

@@ -105,19 +105,6 @@ const demoSoftwareVersions: SoftwareVersions = {
 
 const demoRasaBots: RasaBot[] = [
   {
-    rasaPort: 5006,
-    rasaPortProd: 10006,
-    actionsPort: 5055,
-    projectId: 'hH4Z8S7GXiHsp3PTP',
-    customerName: 'demo-1'
-  },
-  {
-    rasaPort: 5007,
-    actionsPort: 5057,
-    projectId: 'C6y53duQKrDhBqFRp',
-    customerName: 'palmu-demo'
-  },
-  {
     rasaPort: 5008,
     rasaPortProd: 10008,
     actionsPort: 5058,
