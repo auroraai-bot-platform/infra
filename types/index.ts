@@ -59,8 +59,6 @@ export interface Project {
   token?: string;
   actionEndpoint: string;
   prodBaseUrl?: string;
-  prodHost?: string;
-  prodToken?: string;
   prodActionEndpoint?: string;
   hasProd?: boolean;
 }
