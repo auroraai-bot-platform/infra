@@ -13,6 +13,8 @@ const region = 'test';
 const account = '0123456789';
 const actionsTag = 'latest';
 const rasaTag = 'latest';
+const projectCreationVersion = '0.0.1';
+const sourceBucketName = 'test';
 
 let ecrRepos: RasaBot[] = [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer'}];
 
@@ -46,7 +48,10 @@ test('Create rasa-stack with one bot', () => {
     baseVpc: basestack.baseVpc,
     mongoSecret: basestack.mongoSecret,
     graphqlSecret: basestack.graphqlSecret,
-    botfrontVersion: softwareVersions.botfront
+    botfrontVersion: softwareVersions.botfront,
+    projectCreationVersion,
+    rasaBots: ecrRepos,
+    sourceBucketName
   });
   const teststack = new EcsRasaStack(app, 'MyTestStack', {
     defaultRepositories,
@@ -73,8 +78,8 @@ test('Create rasa-stack with one bot', () => {
   .and(countResources('AWS::ECS::Service', 2))
   .and(countResources('AWS::ServiceDiscovery::Service', 2))
   .and(countResources('AWS::EC2::SecurityGroup', 2))
-  .and(countResources('AWS::ElasticLoadBalancingV2::Listener', 2))
-  .and(countResources('AWS::ElasticLoadBalancingV2::TargetGroup', 2))
+  .and(countResources('AWS::ElasticLoadBalancingV2::Listener', 1))
+  .and(countResources('AWS::ElasticLoadBalancingV2::TargetGroup', 1))
   );
 });
 
@@ -112,7 +117,10 @@ test('Create rasa-stack with two bots', () => {
     baseVpc: basestack.baseVpc,
     mongoSecret: basestack.mongoSecret,
     graphqlSecret: basestack.graphqlSecret,
-    botfrontVersion: softwareVersions.botfront
+    botfrontVersion: softwareVersions.botfront,
+    projectCreationVersion,
+    rasaBots: ecrRepos,
+    sourceBucketName
   });
   const teststack = new EcsRasaStack(app, 'MyTestStack', {
     defaultRepositories,
@@ -139,7 +147,7 @@ test('Create rasa-stack with two bots', () => {
   .and(countResources('AWS::ECS::Service', 4))
   .and(countResources('AWS::ServiceDiscovery::Service', 4))
   .and(countResources('AWS::EC2::SecurityGroup', 4))
-  .and(countResources('AWS::ElasticLoadBalancingV2::Listener', 4))
-  .and(countResources('AWS::ElasticLoadBalancingV2::TargetGroup', 4))
+  .and(countResources('AWS::ElasticLoadBalancingV2::Listener', 2))
+  .and(countResources('AWS::ElasticLoadBalancingV2::TargetGroup', 2))
   );
 });
