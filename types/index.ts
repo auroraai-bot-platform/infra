@@ -37,6 +37,7 @@ export interface EnvironmentConfiguration {
   defaultRepositories: DefaultRepositories;
   softwareVersions: SoftwareVersions;
   sourceBucketName: string;
+  botfrontAdminEmail: string;
 }
 
 export interface DefaultRepositories {
@@ -48,6 +49,7 @@ export interface DefaultRepositories {
 export interface LambdaRequest {
   botfrontBaseUrl: string;
   projects: Project[];
+  timestamp: number;
 }
 
 export interface Project {

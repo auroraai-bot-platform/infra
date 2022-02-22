@@ -9,11 +9,11 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as customResources from '@aws-cdk/custom-resources';
 import * as iam from '@aws-cdk/aws-iam';
+import * as cf from '@aws-cdk/aws-cloudformation';
 
 import { BaseStackProps, DefaultRepositories, LambdaRequest, Project, RasaBot } from '../types';
 import { createPrefix } from './utilities';
 import { RetentionDays } from '@aws-cdk/aws-logs';
-import cluster from 'cluster';
 
 interface EcsBfProps extends BaseStackProps {
   defaultRepositories: DefaultRepositories;
@@ -28,6 +28,7 @@ interface EcsBfProps extends BaseStackProps {
   projectCreationVersion: string;
   sourceBucketName: string;
   rasaBots: RasaBot[];
+  botfrontAdminEmail: string;
 }
 
 const restApiPort = 3030;
@@ -45,11 +46,25 @@ export class EcsBfStack extends cdk.Stack {
     const fileBucket = new s3.Bucket(this, `${prefix}file-bucket`, { bucketName: `${prefix}file-bucket`, publicReadAccess: true });
     const modelBucket = new s3.Bucket(this, `${prefix}model-bucket`, { bucketName: `${prefix}model-bucket` });
 
+
+    const botfrontWaitHandle = new cf.CfnWaitConditionHandle(this, `${prefix}botfront-waithandle`);
+
+    const botfrontAdminSecretName = `${prefix}botfront-admin-password`;
+    const botfrontAdminSecret = new secrets.Secret(this, botfrontAdminSecretName, {
+      secretName: botfrontAdminSecretName,
+      generateSecretString: {
+        excludePunctuation: true
+      }
+    });
+
     const botfronttd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-botfront`, {
       cpu: '1024',
       memoryMiB: '4096',
       compatibility:  ecs.Compatibility.FARGATE
     });
+
+    botfronttd.node.addDependency(botfrontWaitHandle);
+    botfronttd.node.addDependency(botfrontAdminSecret);
 
     fileBucket.grantReadWrite(botfronttd.taskRole);
     fileBucket.grantDelete(botfronttd.taskRole);
@@ -76,11 +91,14 @@ export class EcsBfStack extends cdk.Stack {
         FILE_BUCKET: fileBucket.bucketName,
         MODEL_BUCKET: modelBucket.bucketName,
         FILE_PREFIX: 'files/',
-        FILE_SIZE_LIMIT: `${1024 * 1024}`
+        FILE_SIZE_LIMIT: `${1024 * 1024}`,
+        SIGNAL_URL: `${botfrontWaitHandle.ref}`,
+        ADMIN_USER: props.botfrontAdminEmail,
       },
       secrets: {
         MONGO_URL: ecs.Secret.fromSecretsManager(props.mongoSecret),
-        API_KEY: ecs.Secret.fromSecretsManager(props.graphqlSecret)
+        API_KEY: ecs.Secret.fromSecretsManager(props.graphqlSecret),
+        ADMIN_PASSWORD: ecs.Secret.fromSecretsManager(botfrontAdminSecret)
       },
       logging: ecs.LogDriver.awsLogs({
         streamPrefix: `${prefix}botfront`,
@@ -97,6 +115,14 @@ export class EcsBfStack extends cdk.Stack {
       },
       serviceName: `${props.envName}-service-botfront`
     });
+
+
+    const botfrontWaitCondition = new cf.CfnWaitCondition(this, `${prefix}botfront-waitcondition`, {
+      handle: botfrontWaitHandle.ref,
+      timeout: '600'
+    });
+
+    botfrontWaitCondition.node.addDependency(this.botfrontService);
 
     const listener = new elbv2.ApplicationListener(this, `${prefix}listener-botfront`, {
       loadBalancer: props.baseLoadbalancer,
@@ -129,6 +155,7 @@ export class EcsBfStack extends cdk.Stack {
 
     const lambdaRequest: LambdaRequest = {
       botfrontBaseUrl: botfrontInternalUrl,
+      timestamp: Date.now(),
       projects: props.rasaBots.filter((bot) => new RegExp('-').test(bot.customerName) === false).map<Project>((bot) => {
         return {
           name: bot.customerName,
@@ -137,10 +164,10 @@ export class EcsBfStack extends cdk.Stack {
           host: `http://rasa-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.rasaPort}`,
           token: props.graphqlSecret.secretValue.toString(),
           baseUrl: `https://${props.envName}.${props.domain}:${bot.rasaPort}`,
-          actionEndpoint: `http://action-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}`,
+          actionEndpoint: `http://actions-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}`,
           hasProd: bot.hasProd,
           prodBaseUrl: `https://${props.envName}.${props.domain}:${bot.rasaPortProd}`,
-          prodActionEndpoint: `http://action-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}`,
+          prodActionEndpoint: `http://actions-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}`,
         }
       })
     };
@@ -157,12 +184,12 @@ export class EcsBfStack extends cdk.Stack {
       code: new lambda.S3Code(codeBucket, `project-creation/${props.projectCreationVersion}.zip`),
       vpc: props.baseVpc,
       vpcSubnets:  {subnets: props.baseVpc.privateSubnets},
+      timeout: cdk.Duration.minutes(1),
       environment: {
         VERSION: props.projectCreationVersion,
         BOTFRONT_URL: botfrontInternalUrl
       }
     });
-
 
     const lambdaTrigger = new customResources.AwsCustomResource(this, `${prefix}project-creation-lambda-trigger`, {
       functionName: `${props.envName}-botfront-project-creation-trigger`,
@@ -194,6 +221,7 @@ export class EcsBfStack extends cdk.Stack {
       }
     });
 
+    lambdaTrigger.node.addDependency(botfrontWaitCondition);
 
     this.botfrontService.connections.allowFrom(props.baseLoadbalancer, ec2.Port.tcp(443));
     this.botfrontService.connections.allowFromAnyIpv4(ec2.Port.tcp(webServicePort));
