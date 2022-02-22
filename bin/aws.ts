@@ -114,6 +114,7 @@ const demoRasaBots: RasaBot[] = [
     rasaPort: 5008,
     rasaPortProd: 10008,
     actionsPort: 5058,
+    actionsPortProd: 10058,
     projectId: 'testbot',
     customerName: 'testbot'
   },
