@@ -47,6 +47,7 @@ export interface DefaultRepositories {
 }
 
 export interface LambdaRequest {
+  tokenSecretArn: string;
   botfrontBaseUrl: string;
   projects: Project[];
   timestamp: number;

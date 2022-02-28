@@ -154,6 +154,7 @@ export class EcsBfStack extends cdk.Stack {
     const botfrontInternalUrl = `http://${this.botfrontService.cloudMapService?.serviceName}.${props.baseCluster.defaultCloudMapNamespace.namespaceName}:${restApiPort}`;
 
     const lambdaRequest: LambdaRequest = {
+      tokenSecretArn: props.graphqlSecret.secretArn,
       botfrontBaseUrl: botfrontInternalUrl,
       timestamp: Date.now(),
       projects: props.rasaBots.filter((bot) => new RegExp('-').test(bot.customerName) === false).map<Project>((bot) => {
@@ -162,7 +163,6 @@ export class EcsBfStack extends cdk.Stack {
           nameSpace: `bf-${bot.customerName}`,
           projectId: bot.projectId,
           host: `http://rasa-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.rasaPort}`,
-          token: props.graphqlSecret.secretValue.toString(),
           baseUrl: `https://${props.envName}.${props.domain}:${bot.rasaPort}`,
           actionEndpoint: `http://actions-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}`,
           hasProd: bot.hasProd,
@@ -188,8 +188,11 @@ export class EcsBfStack extends cdk.Stack {
       environment: {
         VERSION: props.projectCreationVersion,
         BOTFRONT_URL: botfrontInternalUrl
-      }
+      },
+      logRetention: RetentionDays.ONE_DAY,
     });
+
+    props.graphqlSecret.grantRead(projectCreationLambda);
 
     const lambdaTrigger = new customResources.AwsCustomResource(this, `${prefix}project-creation-lambda-trigger`, {
       functionName: `${props.envName}-botfront-project-creation-trigger`,
@@ -198,7 +201,8 @@ export class EcsBfStack extends cdk.Stack {
         effect: iam.Effect.ALLOW,
         resources: [projectCreationLambda.functionArn]
       })]),
-      timeout: cdk.Duration.minutes(15),
+      timeout: cdk.Duration.minutes(3),
+      logRetention: RetentionDays.ONE_DAY,
       onCreate: {
         service: 'Lambda',
         action: 'invoke',
@@ -221,7 +225,7 @@ export class EcsBfStack extends cdk.Stack {
       }
     });
 
-    lambdaTrigger.node.addDependency(botfrontWaitCondition);
+    lambdaTrigger.node.addDependency(botfrontWaitCondition, this.botfrontService);
 
     this.botfrontService.connections.allowFrom(props.baseLoadbalancer, ec2.Port.tcp(443));
     this.botfrontService.connections.allowFromAnyIpv4(ec2.Port.tcp(webServicePort));
