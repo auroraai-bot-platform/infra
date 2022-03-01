@@ -8,6 +8,7 @@ const region = process.env.CDK_DEPLOY_REGION || process.env.CDK_DEFAULT_REGION |
 const account = process.env.CDK_DEPLOY_ACCOUNT || process.env.CDK_DEFAULT_ACCOUNT || '';
 
 const sourceBucketName = 'auroraai-source-code-bucket';
+const botfrontAdminEmail = 'admin@aaibot.link';
 
 const app = new cdk.App();
 
@@ -94,7 +95,8 @@ const customerenv = createEnvironment(app, {
   rasaBots: customerRasaBots,
   subDomain: customerSubDomain,
   softwareVersions: customerSoftwareVersions,
-  sourceBucketName
+  sourceBucketName,
+  botfrontAdminEmail
 });
 
 // Demo environment
@@ -134,5 +136,50 @@ const demoenv = createEnvironment(app, {
   rasaBots: demoRasaBots,
   subDomain: demoSubDomain,
   softwareVersions: demoSoftwareVersions,
-  sourceBucketName
+  sourceBucketName,
+  botfrontAdminEmail
+});
+
+
+
+
+// test environment
+const testEnvName = 'test';
+const testSubDomain = `${testEnvName}.${domain}`;
+
+const testSoftwareVersions: SoftwareVersions = {
+  frontend: '0.0.7',
+  botfront: '3.0.7-build3',
+  rasa: '3.0.2',
+  actions: '2.8.3-hyte',
+  projectCreation: '0.0.1-build4'
+};
+
+const testRasaBots: RasaBot[] = [
+  {
+    rasaPort: 5008,
+    rasaPortProd: 10008,
+    actionsPort: 5058,
+    projectId: 'testbot',
+    customerName: 'testbot',
+    hasProd: true
+  },
+  {
+    rasaPort: 5009,
+    actionsPort: 5059,
+    projectId: 'palmu',
+    customerName: 'palmu'
+  }
+];
+
+const testenv = createEnvironment(app, {
+  domain,
+  defaultRepositories,
+  env: {account, region},
+  envName: testEnvName,
+  rasaBots: testRasaBots,
+  subDomain: testSubDomain,
+  softwareVersions: testSoftwareVersions,
+  sourceBucketName,
+  botfrontAdminEmail
 });
