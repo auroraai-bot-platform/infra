@@ -13,6 +13,7 @@ const account = '0123456789';
 const actionsTag = 'latest';
 const projectCreationVersion = '0.0.1';
 const sourceBucketName = 'test';
+const botfrontAdminEmail = 'test@test.fi';
 
 
 let ecrRepos: RasaBot[] = [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer'}];
@@ -50,7 +51,8 @@ test('Create botfront-stack with one bot', () => {
     botfrontVersion: softwareVersions.botfront,
     projectCreationVersion,
     sourceBucketName,
-    rasaBots: ecrRepos
+    rasaBots: ecrRepos,
+    botfrontAdminEmail
   });
   // THEN
   expectCDK(teststack).to(countResources('AWS::ECS::TaskDefinition', 1)
@@ -101,7 +103,8 @@ test('Create botfront-stack with two bots', () => {
       botfrontVersion: softwareVersions.botfront,
       projectCreationVersion,
       sourceBucketName,
-      rasaBots: ecrRepos
+      rasaBots: ecrRepos,
+      botfrontAdminEmail
     });
     // THEN
     expectCDK(teststack).to(countResources('AWS::ECS::TaskDefinition', 1)
