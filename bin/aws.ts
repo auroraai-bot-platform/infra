@@ -1,6 +1,4 @@
-#!/usr/bin/env node
-import 'source-map-support/register';
-import * as cdk from '@aws-cdk/core';
+import { App } from 'aws-cdk-lib';
 import { DefaultRepositories, RasaBot, SoftwareVersions } from '../types';
 import { createEnvironment } from '../envs/environment';
 
@@ -10,7 +8,7 @@ const account = process.env.CDK_DEPLOY_ACCOUNT || process.env.CDK_DEFAULT_ACCOUN
 const sourceBucketName = 'auroraai-source-code-bucket';
 const botfrontAdminEmail = 'admin@aaibot.link';
 
-const app = new cdk.App();
+const app = new App();
 
 console.log({account});
 

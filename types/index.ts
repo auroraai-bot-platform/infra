@@ -1,4 +1,4 @@
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 
 export interface BaseStackProps extends cdk.StackProps {
   envName: string;

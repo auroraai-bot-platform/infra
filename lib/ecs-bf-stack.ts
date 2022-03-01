@@ -1,19 +1,20 @@
-import * as cdk from '@aws-cdk/core';
-import * as ecr from '@aws-cdk/aws-ecr';
-import * as ecs from '@aws-cdk/aws-ecs';
-import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
-import * as ec2 from '@aws-cdk/aws-ec2';
-import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as secrets from '@aws-cdk/aws-secretsmanager';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as customResources from '@aws-cdk/custom-resources';
-import * as iam from '@aws-cdk/aws-iam';
-import * as cf from '@aws-cdk/aws-cloudformation';
+import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import { aws_ec2 as ec2 } from 'aws-cdk-lib';
+import { aws_ecr as ecr } from 'aws-cdk-lib';
+import { aws_ecs as ecs } from 'aws-cdk-lib';
+import { aws_elasticloadbalancingv2 as elbv2 } from 'aws-cdk-lib';
+import { aws_certificatemanager as acm } from 'aws-cdk-lib';
+import { aws_secretsmanager as secrets } from 'aws-cdk-lib';
+import { aws_s3 as s3 } from 'aws-cdk-lib';
+import {aws_lambda as lambda} from 'aws-cdk-lib';
+import { custom_resources as customResources} from 'aws-cdk-lib';
+import { aws_iam as iam } from 'aws-cdk-lib';
+import { aws_cloudformation as cf } from 'aws-cdk-lib';
 
 import { BaseStackProps, DefaultRepositories, LambdaRequest, Project, RasaBot } from '../types';
 import { createPrefix } from './utilities';
-import { RetentionDays } from '@aws-cdk/aws-logs';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 interface EcsBfProps extends BaseStackProps {
   defaultRepositories: DefaultRepositories;
@@ -37,7 +38,7 @@ const webServicePort = 8888;
 export class EcsBfStack extends cdk.Stack {
   public readonly botfrontService: ecs.FargateService;
 
-  constructor(scope: cdk.Construct, id: string, props: EcsBfProps) {
+  constructor(scope: Construct, id: string, props: EcsBfProps) {
     super(scope, id, props);
 
     const prefix = createPrefix(props.envName, this.constructor.name);

@@ -1,5 +1,5 @@
 import {countResources, expect as expectCDK }from '@aws-cdk/assert';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { EcsRasaStack } from '../lib/ecs-rasa-stack';
 import { EcsBfStack } from '../lib/ecs-bf-stack';
 import { EcsBaseStack } from '../lib/ecs-base-stack';
@@ -13,6 +13,9 @@ const region = 'test';
 const account = '0123456789';
 const actionsTag = 'latest';
 const rasaTag = 'latest';
+const botfrontAdminEmail = 'test@test.fi';
+const projectCreationVersion = '0.0.1';
+const sourceBucketName = 'notarealbucket';
 
 let ecrRepos: RasaBot[] = [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer'}];
 
@@ -46,7 +49,11 @@ test('Create rasa-stack with one bot', () => {
     baseVpc: basestack.baseVpc,
     mongoSecret: basestack.mongoSecret,
     graphqlSecret: basestack.graphqlSecret,
-    botfrontVersion: softwareVersions.botfront
+    botfrontVersion: softwareVersions.botfront,
+    botfrontAdminEmail,
+    projectCreationVersion,
+    rasaBots: ecrRepos,
+    sourceBucketName
   });
   const teststack = new EcsRasaStack(app, 'MyTestStack', {
     defaultRepositories,
@@ -112,7 +119,11 @@ test('Create rasa-stack with two bots', () => {
     baseVpc: basestack.baseVpc,
     mongoSecret: basestack.mongoSecret,
     graphqlSecret: basestack.graphqlSecret,
-    botfrontVersion: softwareVersions.botfront
+    botfrontVersion: softwareVersions.botfront,
+    botfrontAdminEmail,
+    projectCreationVersion,
+    rasaBots: ecrRepos,
+    sourceBucketName
   });
   const teststack = new EcsRasaStack(app, 'MyTestStack', {
     defaultRepositories,

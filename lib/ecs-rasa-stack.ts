@@ -1,14 +1,15 @@
-import * as cdk from '@aws-cdk/core';
-import * as ecr from '@aws-cdk/aws-ecr';
-import * as ecs from '@aws-cdk/aws-ecs';
-import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
-import * as ec2 from '@aws-cdk/aws-ec2';
-import * as acm from '@aws-cdk/aws-certificatemanager';
+import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import { aws_ecr as ecr } from 'aws-cdk-lib';
+import { aws_ecs as ecs } from 'aws-cdk-lib';
+import { aws_elasticloadbalancingv2 as elbv2 } from 'aws-cdk-lib';
+import { aws_ec2 as ec2 } from 'aws-cdk-lib';
+import { aws_certificatemanager as acm } from 'aws-cdk-lib';
 import { BaseStackProps, DefaultRepositories, RasaBot } from '../types';
 import { createPrefix } from './utilities';
-import { RetentionDays } from '@aws-cdk/aws-logs';
-import { Secret } from '@aws-cdk/aws-secretsmanager';
-import { Bucket } from '@aws-cdk/aws-s3';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
 
 interface EcsRasaProps extends BaseStackProps {
   defaultRepositories: DefaultRepositories;
@@ -24,7 +25,7 @@ interface EcsRasaProps extends BaseStackProps {
 }
 
 export class EcsRasaStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props: EcsRasaProps) {
+  constructor(scope: Construct, id: string, props: EcsRasaProps) {
     super(scope, id, props);
     const prefix = createPrefix(props.envName, this.constructor.name);
 

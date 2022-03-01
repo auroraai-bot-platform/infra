@@ -1,12 +1,13 @@
-import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
-import * as ecr from '@aws-cdk/aws-ecr';
-import * as ecs from '@aws-cdk/aws-ecs';
-import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
-import * as route53 from '@aws-cdk/aws-route53';
-import * as route53t from '@aws-cdk/aws-route53-targets';
-import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as secrets from '@aws-cdk/aws-secretsmanager';
+import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import { aws_ec2 as ec2 } from 'aws-cdk-lib';
+import { aws_ecr as ecr } from 'aws-cdk-lib';
+import { aws_ecs as ecs } from 'aws-cdk-lib';
+import { aws_elasticloadbalancingv2 as elbv2 } from 'aws-cdk-lib';
+import  { aws_route53 as route53 } from 'aws-cdk-lib';
+import { aws_route53_targets as route53t } from 'aws-cdk-lib';
+import { aws_certificatemanager as acm } from 'aws-cdk-lib';
+import { aws_secretsmanager as secrets } from 'aws-cdk-lib';
 
 import * as ecrdeploy from 'cdk-ecr-deployment';
 
@@ -29,7 +30,7 @@ export class EcsBaseStack extends cdk.Stack {
   public readonly mongoSecret: secrets.Secret;
   public readonly graphqlSecret: secrets.Secret;
 
-  constructor(scope: cdk.Construct, id: string, props: EcsBaseProps) {
+  constructor(scope: Construct, id: string, props: EcsBaseProps) {
     super(scope, id, props);
     const prefix = createPrefix(props.envName, this.constructor.name);
 
