@@ -80,8 +80,8 @@ test('Create rasa-stack with one bot', () => {
   .and(countResources('AWS::ECS::Service', 2))
   .and(countResources('AWS::ServiceDiscovery::Service', 2))
   .and(countResources('AWS::EC2::SecurityGroup', 2))
-  .and(countResources('AWS::ElasticLoadBalancingV2::Listener', 2))
-  .and(countResources('AWS::ElasticLoadBalancingV2::TargetGroup', 2))
+  .and(countResources('AWS::ElasticLoadBalancingV2::Listener', 1))
+  .and(countResources('AWS::ElasticLoadBalancingV2::TargetGroup', 1))
   );
 });
 
@@ -150,7 +150,7 @@ test('Create rasa-stack with two bots', () => {
   .and(countResources('AWS::ECS::Service', 4))
   .and(countResources('AWS::ServiceDiscovery::Service', 4))
   .and(countResources('AWS::EC2::SecurityGroup', 4))
-  .and(countResources('AWS::ElasticLoadBalancingV2::Listener', 4))
-  .and(countResources('AWS::ElasticLoadBalancingV2::TargetGroup', 4))
+  .and(countResources('AWS::ElasticLoadBalancingV2::Listener', 2))
+  .and(countResources('AWS::ElasticLoadBalancingV2::TargetGroup', 2))
   );
 });
