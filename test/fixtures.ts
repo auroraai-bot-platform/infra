@@ -5,6 +5,7 @@ export const softwareVersions: SoftwareVersions = {
   botfront: '0.0.1',
   actions: '0.0.1',
   rasa: '0.0.1',
+  projectCreation: '0.0.1'
 };
 
 export const defaultRepositories: DefaultRepositories = {

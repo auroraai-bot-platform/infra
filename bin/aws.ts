@@ -7,6 +7,9 @@ import { createEnvironment } from '../envs/environment';
 const region = process.env.CDK_DEPLOY_REGION || process.env.CDK_DEFAULT_REGION || 'eu-north-1';
 const account = process.env.CDK_DEPLOY_ACCOUNT || process.env.CDK_DEFAULT_ACCOUNT || '';
 
+const sourceBucketName = 'auroraai-source-code-bucket';
+const botfrontAdminEmail = 'admin@aaibot.link';
+
 const app = new cdk.App();
 
 console.log({account});
@@ -22,7 +25,8 @@ const customerSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
   botfront: '3.0.6',
   rasa: '3.0.2',
-  actions: '2.1.2-hyte'
+  actions: '2.1.2-hyte',
+  projectCreation: '0.0.2'
 };
 
 // Base domain
@@ -90,7 +94,9 @@ const customerenv = createEnvironment(app, {
   envName: customerEnvName,
   rasaBots: customerRasaBots,
   subDomain: customerSubDomain,
-  softwareVersions: customerSoftwareVersions
+  softwareVersions: customerSoftwareVersions,
+  sourceBucketName,
+  botfrontAdminEmail
 });
 
 // Demo environment
@@ -99,24 +105,26 @@ const demoSubDomain = `${demoEnvName}.${domain}`;
 
 const demoSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '3.0.5',
+  botfront: '3.0.7-alpha',
   rasa: '3.0.2',
-  actions: '2.8.3-hyte'
+  actions: '2.8.3-hyte',
+  projectCreation: '0.0.1-build2'
 };
 
 const demoRasaBots: RasaBot[] = [
   {
-    rasaPort: 5006,
-    rasaPortProd: 10006,
-    actionsPort: 5055,
-    projectId: 'hH4Z8S7GXiHsp3PTP',
-    customerName: 'demo-1'
+    rasaPort: 5008,
+    rasaPortProd: 10008,
+    actionsPort: 5058,
+    actionsPortProd: 10058,
+    projectId: 'testbot',
+    customerName: 'testbot'
   },
   {
-    rasaPort: 5007,
-    actionsPort: 5057,
-    projectId: 'C6y53duQKrDhBqFRp',
-    customerName: 'palmu-demo'
+    rasaPort: 5009,
+    actionsPort: 5059,
+    projectId: 'palmu',
+    customerName: 'palmu'
   }
 ];
 
@@ -127,5 +135,51 @@ const demoenv = createEnvironment(app, {
   envName: demoEnvName,
   rasaBots: demoRasaBots,
   subDomain: demoSubDomain,
-  softwareVersions: demoSoftwareVersions
+  softwareVersions: demoSoftwareVersions,
+  sourceBucketName,
+  botfrontAdminEmail
+});
+
+
+
+
+// test environment
+const testEnvName = 'test';
+const testSubDomain = `${testEnvName}.${domain}`;
+
+const testSoftwareVersions: SoftwareVersions = {
+  frontend: '0.0.7',
+  botfront: '3.0.7-build3',
+  rasa: '3.0.2',
+  actions: '2.8.3-hyte',
+  projectCreation: '0.0.1-build4'
+};
+
+const testRasaBots: RasaBot[] = [
+  {
+    rasaPort: 5008,
+    rasaPortProd: 10008,
+    actionsPort: 5058,
+    projectId: 'testbot',
+    customerName: 'testbot',
+    hasProd: true
+  },
+  {
+    rasaPort: 5009,
+    actionsPort: 5059,
+    projectId: 'palmu',
+    customerName: 'palmu'
+  }
+];
+
+const testenv = createEnvironment(app, {
+  domain,
+  defaultRepositories,
+  env: {account, region},
+  envName: testEnvName,
+  rasaBots: testRasaBots,
+  subDomain: testSubDomain,
+  softwareVersions: testSoftwareVersions,
+  sourceBucketName,
+  botfrontAdminEmail
 });

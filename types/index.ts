@@ -6,10 +6,12 @@ export interface BaseStackProps extends cdk.StackProps {
 
 export interface RasaBot {
   actionsPort: number;
+  actionsPortProd?: number
   customerName: string;
   projectId: string;
   rasaPort: number;
   rasaPortProd?: number;
+  hasProd?: boolean;
   additionalConfig?: {
     intents: {
       [intentPath: string]: string;
@@ -21,6 +23,7 @@ export interface SoftwareVersions {
   botfront: string;
   rasa: string;
   actions: string;
+  projectCreation: string;
 }
 
 export interface EnvironmentConfiguration {
@@ -34,10 +37,32 @@ export interface EnvironmentConfiguration {
   subDomain: string;
   defaultRepositories: DefaultRepositories;
   softwareVersions: SoftwareVersions;
+  sourceBucketName: string;
+  botfrontAdminEmail: string;
 }
 
 export interface DefaultRepositories {
   botfrontRepository: string;
   rasaBotRepository: string;
   actionsRepository: string;
+}
+
+export interface LambdaRequest {
+  tokenSecretArn: string;
+  botfrontBaseUrl: string;
+  projects: Project[];
+  timestamp: number;
+}
+
+export interface Project {
+  baseUrl: string;
+  name: string;
+  nameSpace: string;
+  projectId: string;
+  host: string;
+  token?: string;
+  actionEndpoint: string;
+  prodBaseUrl?: string;
+  prodActionEndpoint?: string;
+  hasProd?: boolean;
 }

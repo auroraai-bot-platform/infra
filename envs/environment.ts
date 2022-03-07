@@ -5,15 +5,31 @@ import { EcsRasaStack } from '../lib/ecs-rasa-stack';
 import { WebChatStack } from '../lib/web-chat-stack';
 import { EnvironmentConfiguration } from '../types';
 
+const validProjectNameRegExp = new RegExp('^[a-zA-Z0-9]+$');
+
 
 export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration) {
-  const allPorts = config.rasaBots.map(bot => [bot.actionsPort, bot.rasaPort]).flat();
-  const uniquePortCount: number = new Set(allPorts).size;
+  const allPorts = config.rasaBots.map(bot => [bot.rasaPort, bot.rasaPortProd]).flat().filter((port) => port != undefined);
+  const uniquePortCount = new Set(allPorts).size;
   const portCollision = uniquePortCount !== allPorts.length;
 
   if (portCollision) {
     throw new Error(`Env: ${config.envName}. Cannot create environment because of colliding port configurations. ${JSON.stringify(config.rasaBots)}`);
   }
+
+  const allProjectIds = config.rasaBots.map(bot => bot.projectId);
+  const unqiueProjectIdCount = new Set(allProjectIds).size;
+  const projectIdCollision = unqiueProjectIdCount !== allProjectIds.length;
+
+  if (projectIdCollision) {
+    throw new Error(`Env: ${config.envName}. Cannot create environment because of colliding projectId configurations. ${JSON.stringify(config.rasaBots)}`);
+  }
+
+  const invalidCustomerNames = config.rasaBots.filter((bot) => validProjectNameRegExp.test(bot.customerName) === false).map((bot) => bot.customerName);
+
+  // if (invalidCustomerNames.length > 0) {
+  //   throw new Error(`Env: ${config.envName}. Cannot create environment because of invalid customerNames. ${JSON.stringify(invalidCustomerNames)}`);
+  // }
 
   // Demo-ecs env
   const ecsBaseStack = new EcsBaseStack(app, `${config.envName}-base-stack`, {
@@ -39,7 +55,11 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
     env: config.env,
     mongoSecret: ecsBaseStack.mongoSecret,
     graphqlSecret: ecsBaseStack.graphqlSecret,
-    botfrontVersion: config.softwareVersions.botfront
+    botfrontVersion: config.softwareVersions.botfront,
+    projectCreationVersion: config.softwareVersions.projectCreation,
+    sourceBucketName: config.sourceBucketName,
+    rasaBots: config.rasaBots,
+    botfrontAdminEmail: config.botfrontAdminEmail,
   });
   cdk.Tags.of(ecsBfStack).add('environment', config.envName)
 
@@ -66,7 +86,8 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
     rasaBots: config.rasaBots,
     domain: config.domain,
     subDomain: config.subDomain,
-    frontendVersion: config.softwareVersions.frontend
+    frontendVersion: config.softwareVersions.frontend,
+    sourceBucketName: config.sourceBucketName
   });
 
   return { ecsBaseStack, EcsBfStack, rasaBotStack };
