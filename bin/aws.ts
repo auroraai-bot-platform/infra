@@ -99,10 +99,10 @@ const demoSubDomain = `${demoEnvName}.${domain}`;
 
 const demoSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '3.0.7-alpha',
+  botfront: '3.0.7',
   rasa: '3.0.2',
   actions: '2.8.3-hyte',
-  projectCreation: '0.0.1-build2'
+  projectCreation: '1.0.0'
 };
 
 const demoRasaBots: RasaBot[] = [
@@ -142,10 +142,10 @@ const testSubDomain = `${testEnvName}.${domain}`;
 
 const testSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '3.0.7-build3',
+  botfront: '3.0.8',
   rasa: '3.0.2',
   actions: '2.8.3-hyte',
-  projectCreation: '0.0.1-build4'
+  projectCreation: '0.0.1-build5'
 };
 
 const testRasaBots: RasaBot[] = [
@@ -161,7 +161,9 @@ const testRasaBots: RasaBot[] = [
     rasaPort: 5009,
     actionsPort: 5059,
     projectId: 'palmu',
-    customerName: 'palmu'
+    customerName: 'palmu',
+    hasProd: true,
+    rasaPortProd: 10009
   }
 ];
 

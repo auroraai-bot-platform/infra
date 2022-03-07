@@ -225,7 +225,7 @@ export class EcsBfStack extends cdk.Stack {
       }
     });
 
-    lambdaTrigger.node.addDependency(botfrontWaitCondition, this.botfrontService);
+    lambdaTrigger.node.addDependency(this.botfrontService, botfrontWaitCondition);
 
     this.botfrontService.connections.allowFrom(props.baseLoadbalancer, ec2.Port.tcp(443));
     this.botfrontService.connections.allowFromAnyIpv4(ec2.Port.tcp(webServicePort));
