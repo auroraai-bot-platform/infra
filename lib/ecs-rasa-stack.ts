@@ -153,8 +153,7 @@ export class EcsRasaStack extends cdk.Stack {
         serviceName: `${props.envName}-service-actions-${rasaBot.customerName}`
       });
 
-      // Remove lb from actions
-/*       const actionslistener = new elbv2.ApplicationListener(this, `${prefix}listener-actions-${rasaBot.customerName}`, {
+      const actionslistener = new elbv2.ApplicationListener(this, `${prefix}listener-actions-${rasaBot.customerName}`, {
         loadBalancer: props.baseLoadbalancer,
         port: rasaBot.actionsPort,
         protocol: elbv2.ApplicationProtocol.HTTPS,
@@ -177,8 +176,7 @@ export class EcsRasaStack extends cdk.Stack {
 
       actionslistener.addTargetGroups(`${prefix}targetgroupadd-actions-${rasaBot.customerName}`, {
         targetGroups: [actionstg]
-
-      }); */
+      });
 
       actionsservice.connections.allowFrom(props.botfrontService, ec2.Port.tcp(rasaBot.actionsPort));
       actionsservice.connections.allowFrom(rasaservice, ec2.Port.tcp(rasaBot.actionsPort));
