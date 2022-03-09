@@ -13,7 +13,8 @@ const account = '0123456789';
 const actionsTag = 'latest';
 const botfrontAdminEmail = 'test@test.fi';
 const projectCreationVersion = '0.0.1';
-const sourceBucketName = 'notarealbucket';
+const sourceBucketName = 'test';
+const botfrontAdminEmail = 'test@test.fi';
 
 
 let ecrRepos: RasaBot[] = [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer'}];
@@ -51,11 +52,12 @@ test('Create botfront-stack with one bot', () => {
     botfrontVersion: softwareVersions.botfront,
     botfrontAdminEmail,
     projectCreationVersion,
+    sourceBucketName,
     rasaBots: ecrRepos,
-    sourceBucketName
+    botfrontAdminEmail
   });
   // THEN
-  expect(teststack).to(countResources('AWS::ECS::TaskDefinition', 1)
+  expectCDK(teststack).to(countResources('AWS::ECS::TaskDefinition', 1)
   .and(countResources('AWS::IAM::Role', 5))
   .and(countResources('AWS::IAM::Policy', 5))
   .and(countResources('AWS::ECS::Service', 1))
@@ -103,11 +105,12 @@ test('Create botfront-stack with two bots', () => {
       botfrontVersion: softwareVersions.botfront,
       botfrontAdminEmail,
       projectCreationVersion,
+      sourceBucketName,
       rasaBots: ecrRepos,
-      sourceBucketName
+      botfrontAdminEmail
     });
     // THEN
-    expect(teststack).to(countResources('AWS::ECS::TaskDefinition', 1)
+    expectCDK(teststack).to(countResources('AWS::ECS::TaskDefinition', 1)
     .and(countResources('AWS::IAM::Role', 5))
     .and(countResources('AWS::IAM::Policy', 5))
     .and(countResources('AWS::ECS::Service', 1))

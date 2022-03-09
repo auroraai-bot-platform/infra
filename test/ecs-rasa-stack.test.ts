@@ -15,7 +15,8 @@ const actionsTag = 'latest';
 const rasaTag = 'latest';
 const botfrontAdminEmail = 'test@test.fi';
 const projectCreationVersion = '0.0.1';
-const sourceBucketName = 'notarealbucket';
+const sourceBucketName = 'test';
+const botfrontAdminEmail = 'test@test.fi';
 
 let ecrRepos: RasaBot[] = [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer'}];
 
@@ -53,7 +54,8 @@ test('Create rasa-stack with one bot', () => {
     botfrontAdminEmail,
     projectCreationVersion,
     rasaBots: ecrRepos,
-    sourceBucketName
+    sourceBucketName,
+    botfrontAdminEmail
   });
   const teststack = new EcsRasaStack(app, 'MyTestStack', {
     defaultRepositories,
@@ -123,7 +125,8 @@ test('Create rasa-stack with two bots', () => {
     botfrontAdminEmail,
     projectCreationVersion,
     rasaBots: ecrRepos,
-    sourceBucketName
+    sourceBucketName,
+    botfrontAdminEmail
   });
   const teststack = new EcsRasaStack(app, 'MyTestStack', {
     defaultRepositories,
