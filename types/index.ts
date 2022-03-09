@@ -9,6 +9,7 @@ export interface RasaBot {
   actionsPortProd?: number
   customerName: string;
   projectId: string;
+  projectName: string;
   rasaPort: number;
   rasaPortProd?: number;
   hasProd?: boolean;

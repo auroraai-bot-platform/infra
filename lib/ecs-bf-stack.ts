@@ -157,17 +157,17 @@ export class EcsBfStack extends cdk.Stack {
       tokenSecretArn: props.graphqlSecret.secretArn,
       botfrontBaseUrl: botfrontInternalUrl,
       timestamp: Date.now(),
-      projects: props.rasaBots.filter((bot) => new RegExp('-').test(bot.customerName) === false).map<Project>((bot) => {
+      projects: props?.rasaBots?.map<Project>((bot) => {
         return {
-          name: bot.customerName,
+          name: bot.projectName,
           nameSpace: `bf-${bot.customerName}`,
           projectId: bot.projectId,
           host: `http://rasa-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.rasaPort}`,
           baseUrl: `https://${props.envName}.${props.domain}:${bot.rasaPort}`,
-          actionEndpoint: `http://actions-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}`,
+          actionEndpoint: `http://actions-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}/webhook`,
           hasProd: bot.hasProd,
           prodBaseUrl: `https://${props.envName}.${props.domain}:${bot.rasaPortProd}`,
-          prodActionEndpoint: `http://actions-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}`,
+          prodActionEndpoint: `http://actions-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}/webhook`,
         }
       })
     };
