@@ -23,10 +23,10 @@ const defaultRepositories: DefaultRepositories = {
 
 const customerSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '3.0.6',
+  botfront: '3.0.7',
   rasa: '3.0.2',
   actions: '2.1.2-hyte',
-  projectCreation: '0.0.2'
+  projectCreation: '1.0.0'
 };
 
 // Base domain
@@ -44,7 +44,7 @@ const customerRasaBots: RasaBot[] = [
     rasaPort: 5005, 
     actionsPort: 5055, 
     projectId: 'HFqcqN9LEiDo8u2N7', 
-    customerName: 'hyte-firstbot', 
+    customerName: 'hytebotti', 
     additionalConfig: {
       intents: {
         onerva: '/aloita{"oma_organisaatio": "onerva"}',
