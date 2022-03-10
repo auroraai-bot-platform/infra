@@ -21,7 +21,7 @@ const defaultRepositories: DefaultRepositories = {
 
 const customerSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '3.0.7',
+  botfront: '3.0.9',
   rasa: '3.0.2',
   actions: '2.1.2-hyte',
   projectCreation: '1.0.0'
@@ -109,7 +109,7 @@ const demoSubDomain = `${demoEnvName}.${domain}`;
 
 const demoSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '3.0.7',
+  botfront: '3.0.9',
   rasa: '3.0.2',
   actions: '2.8.3-hyte',
   projectCreation: '1.0.0'
@@ -143,54 +143,6 @@ const demoenv = createEnvironment(app, {
   rasaBots: demoRasaBots,
   subDomain: demoSubDomain,
   softwareVersions: demoSoftwareVersions,
-  sourceBucketName,
-  botfrontAdminEmail
-});
-
-
-
-
-// test environment
-const testEnvName = 'test';
-const testSubDomain = `${testEnvName}.${domain}`;
-
-const testSoftwareVersions: SoftwareVersions = {
-  frontend: '0.0.7',
-  botfront: '3.0.8',
-  rasa: '3.0.2',
-  actions: '2.8.3-hyte',
-  projectCreation: '0.0.1-build5'
-};
-
-const testRasaBots: RasaBot[] = [
-  {
-    rasaPort: 5008,
-    rasaPortProd: 10008,
-    actionsPort: 5058,
-    projectId: 'testbot',
-    customerName: 'testbot',
-    hasProd: true,
-    projectName: 'testbot'
-  },
-  {
-    rasaPort: 5009,
-    actionsPort: 5059,
-    projectId: 'palmu',
-    customerName: 'palmu',
-    hasProd: true,
-    rasaPortProd: 10009,
-    projectName: 'palmu'
-  }
-];
-
-const testenv = createEnvironment(app, {
-  domain,
-  defaultRepositories,
-  env: {account, region},
-  envName: testEnvName,
-  rasaBots: testRasaBots,
-  subDomain: testSubDomain,
-  softwareVersions: testSoftwareVersions,
   sourceBucketName,
   botfrontAdminEmail
 });
