@@ -1,4 +1,4 @@
-import { Template } from "aws-cdk-lib/assertions";
+import { Template } from 'aws-cdk-lib/assertions';
 import * as cdk from 'aws-cdk-lib';
 import { EcsBfStack } from '../lib/ecs-bf-stack';
 import { EcsBaseStack } from '../lib/ecs-base-stack';
