@@ -21,7 +21,7 @@ const defaultRepositories: DefaultRepositories = {
 
 const customerSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '3.0.7',
+  botfront: '3.0.9',
   rasa: '3.0.2',
   actions: '2.1.2-hyte',
   projectCreation: '1.0.0'
@@ -109,7 +109,7 @@ const demoSubDomain = `${demoEnvName}.${domain}`;
 
 const demoSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '3.0.7',
+  botfront: '3.0.9',
   rasa: '3.0.2',
   actions: '2.8.3-hyte',
   projectCreation: '1.0.0'
