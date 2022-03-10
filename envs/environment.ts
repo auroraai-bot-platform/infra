@@ -1,4 +1,4 @@
-import { App, Tags } from 'aws-cdk-lib';
+import * as cdk from 'aws-cdk-lib';
 import { EcsBaseStack } from '../lib/ecs-base-stack';
 import { EcsBfStack } from '../lib/ecs-bf-stack';
 import { EcsRasaStack } from '../lib/ecs-rasa-stack';
@@ -8,7 +8,7 @@ import { EnvironmentConfiguration } from '../types';
 const validProjectNameRegExp = new RegExp('^[a-zA-Z0-9]+$');
 
 
-export function createEnvironment(app: App, config: EnvironmentConfiguration) {
+export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration) {
   const allPorts = config.rasaBots.map(bot => [bot.rasaPort, bot.rasaPortProd]).flat().filter((port) => port != undefined);
   const uniquePortCount = new Set(allPorts).size;
   const portCollision = uniquePortCount !== allPorts.length;
@@ -42,7 +42,7 @@ export function createEnvironment(app: App, config: EnvironmentConfiguration) {
     actionsTag: config.softwareVersions.actions
   });
 
-  Tags.of(ecsBaseStack).add('environment', config.envName)
+  cdk.Tags.of(ecsBaseStack).add('environment', config.envName)
 
   const ecsBfStack = new EcsBfStack(app, `${config.envName}-botfront-stack`, {
     defaultRepositories: config.defaultRepositories,
@@ -61,7 +61,7 @@ export function createEnvironment(app: App, config: EnvironmentConfiguration) {
     rasaBots: config.rasaBots,
     botfrontAdminEmail: config.botfrontAdminEmail,
   });
-  Tags.of(ecsBfStack).add('environment', config.envName)
+  cdk.Tags.of(ecsBfStack).add('environment', config.envName)
 
   const rasaBotStack = new EcsRasaStack(app, `${config.envName}-rasa-stack`, {
     defaultRepositories: config.defaultRepositories,
@@ -77,8 +77,7 @@ export function createEnvironment(app: App, config: EnvironmentConfiguration) {
     rasaVersion: config.softwareVersions.rasa,
     actionsVersion: config.softwareVersions.actions
   });
-
-  Tags.of(rasaBotStack).add('environment', config.envName);
+  cdk.Tags.of(rasaBotStack).add('environment', config.envName);
 
   const webChatStack = new WebChatStack(app, `${config.envName}-webchat-stack`, {
     envName: config.envName,
