@@ -21,10 +21,10 @@ const defaultRepositories: DefaultRepositories = {
 
 const customerSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '3.0.6',
+  botfront: '3.0.7',
   rasa: '3.0.2',
   actions: '2.1.2-hyte',
-  projectCreation: '0.0.2'
+  projectCreation: '1.0.0'
 };
 
 // Base domain
@@ -42,7 +42,8 @@ const customerRasaBots: RasaBot[] = [
     rasaPort: 5005, 
     actionsPort: 5055, 
     projectId: 'HFqcqN9LEiDo8u2N7', 
-    customerName: 'hyte-firstbot', 
+    customerName: 'hyte-firstbot',
+    projectName: 'hytebotti',
     additionalConfig: {
       intents: {
         onerva: '/aloita{"oma_organisaatio": "onerva"}',
@@ -57,31 +58,36 @@ const customerRasaBots: RasaBot[] = [
     rasaPort: 5008,
     actionsPort: 5058,
     projectId: '5pdZnBudb8vgahE5X',
-    customerName: 'iht-botti'
+    customerName: 'iht-botti',
+    projectName: 'ihtbotti'
   },
   {
     rasaPort: 5009,
     actionsPort: 5059,
     projectId: '5N9KN36CprezbZiND',
-    customerName: 'kupotti'
+    customerName: 'kupotti',
+    projectName: 'kupotti'
   },
   {
     rasaPort: 5010,
     actionsPort: 5060,
     projectId: 'RdZ2sZtx5DXp6r6Ja',
-    customerName: 'kukibotti'
+    customerName: 'kukibotti',
+    projectName: 'kukibotti'
   },
   {
     rasaPort: 5011,
     actionsPort: 5061,
     projectId: 'RE6gaLdvsMxGwKAcA',
-    customerName: 'hdl-botti'
+    customerName: 'hdl-botti',
+    projectName: 'hdlbotti'
   },
   {
     rasaPort: 5012,
     actionsPort: 5062,
     projectId: 'Tyofez6zTQDxxSFZT',
-    customerName: 'albotti'
+    customerName: 'albotti',
+    projectName: 'albotti'
   }
 ];
 
@@ -117,13 +123,15 @@ const demoRasaBots: RasaBot[] = [
     actionsPortProd: 10058,
     projectId: 'testbot',
     customerName: 'testbot',
-    hasProd: true
+    hasProd: true,
+    projectName: 'testbot'
   },
   {
     rasaPort: 5009,
     actionsPort: 5059,
     projectId: 'palmu',
-    customerName: 'palmu'
+    customerName: 'palmu',
+    projectName: 'palmu'
   }
 ];
 
@@ -161,7 +169,8 @@ const testRasaBots: RasaBot[] = [
     actionsPort: 5058,
     projectId: 'testbot',
     customerName: 'testbot',
-    hasProd: true
+    hasProd: true,
+    projectName: 'testbot'
   },
   {
     rasaPort: 5009,
@@ -169,7 +178,8 @@ const testRasaBots: RasaBot[] = [
     projectId: 'palmu',
     customerName: 'palmu',
     hasProd: true,
-    rasaPortProd: 10009
+    rasaPortProd: 10009,
+    projectName: 'palmu'
   }
 ];
 

@@ -11,27 +11,35 @@ const validProjectNameRegExp = new RegExp('^[a-zA-Z0-9]+$');
 export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration) {
   const allPorts = config.rasaBots.map(bot => [bot.rasaPort, bot.rasaPortProd]).flat().filter((port) => port != undefined);
   const uniquePortCount = new Set(allPorts).size;
-  const portCollision = uniquePortCount !== allPorts.length;
+  const hasPortCollision = uniquePortCount !== allPorts.length;
 
-  if (portCollision) {
+  if (hasPortCollision) {
     throw new Error(`Env: ${config.envName}. Cannot create environment because of colliding port configurations. ${JSON.stringify(config.rasaBots)}`);
   }
 
   const allProjectIds = config.rasaBots.map(bot => bot.projectId);
   const unqiueProjectIdCount = new Set(allProjectIds).size;
-  const projectIdCollision = unqiueProjectIdCount !== allProjectIds.length;
+  const hasProjectIdCollision = unqiueProjectIdCount !== allProjectIds.length;
 
-  if (projectIdCollision) {
+  if (hasProjectIdCollision) {
     throw new Error(`Env: ${config.envName}. Cannot create environment because of colliding projectId configurations. ${JSON.stringify(config.rasaBots)}`);
   }
 
-  const invalidCustomerNames = config.rasaBots.filter((bot) => validProjectNameRegExp.test(bot.customerName) === false).map((bot) => bot.customerName);
+  const allProjectNames = config.rasaBots.map(bot => bot.projectId);
+  const unqiueProjectNameCount = new Set(allProjectNames).size;
+  const hasProjectNameCollision = unqiueProjectNameCount !== allProjectNames.length;
 
-  // if (invalidCustomerNames.length > 0) {
-  //   throw new Error(`Env: ${config.envName}. Cannot create environment because of invalid customerNames. ${JSON.stringify(invalidCustomerNames)}`);
-  // }
+  if (hasProjectNameCollision) {
+    throw new Error(`Env: ${config.envName}. Cannot create environment because of colliding projectName configurations. ${JSON.stringify(config.rasaBots)}`);
+  }
 
-  // Demo-ecs env
+  const invalidProjectNames = config.rasaBots.filter((bot) => validProjectNameRegExp.test(bot.projectName) === false).map((bot) => bot.projectName);
+
+  if (invalidProjectNames.length > 0) {
+    throw new Error(`Env: ${config.envName}. Cannot create environment because of invalid projectNames. ${JSON.stringify(invalidProjectNames)}`);
+  }
+
+
   const ecsBaseStack = new EcsBaseStack(app, `${config.envName}-base-stack`, {
     defaultRepositories: config.defaultRepositories,
     envName: config.envName,

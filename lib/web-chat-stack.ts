@@ -64,7 +64,7 @@ export class WebChatStack extends cdk.Stack {
 
     for (const rasaBot of props.rasaBots) {
 
-      const rasaBotDomain = `${rasaBot.customerName}.${props.subDomain}`;
+      const rasaBotDomain = `${rasaBot.projectName}.${props.subDomain}`;
 
       // write rasa config files to temp folder for the deployment
       fs.mkdirSync(`temp/${prefix}/${rasaBot.customerName}/config`, { recursive: true });

@@ -15,7 +15,7 @@ const botfrontAdminEmail = 'test@test.fi';
 const projectCreationVersion = '0.0.1';
 const sourceBucketName = 'test';
 
-let ecrRepos: RasaBot[] = [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer'}];
+let ecrRepos: RasaBot[] = [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer', projectName: 'veryrealcustomer'}];
 
 
 test('Create botfront-stack with one bot', () => {
@@ -68,8 +68,8 @@ test('Create botfront-stack with one bot', () => {
 test('Create botfront-stack with two bots', () => {
     const app = new cdk.App();
     ecrRepos = [
-      {rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer'},
-      {rasaPort: 3, actionsPort: 4, projectId: 'veryrealid2', customerName: 'veryrealcustomer2'}
+      {rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer', projectName: 'veryrealcustomer'},
+      {rasaPort: 3, actionsPort: 4, projectId: 'veryrealid2', customerName: 'veryrealcustomer2', projectName: 'veryrealcustomer2'}
     ];
 
     // WHEN
