@@ -1,5 +1,5 @@
-import {countResources, expect as expectCDK }from '@aws-cdk/assert';
-import * as cdk from '@aws-cdk/core';
+import { Template } from 'aws-cdk-lib/assertions';
+import * as cdk from 'aws-cdk-lib';
 import { EcsRasaStack } from '../lib/ecs-rasa-stack';
 import { EcsBfStack } from '../lib/ecs-bf-stack';
 import { EcsBaseStack } from '../lib/ecs-base-stack';
@@ -13,9 +13,9 @@ const region = 'test';
 const account = '0123456789';
 const actionsTag = 'latest';
 const rasaTag = 'latest';
+const botfrontAdminEmail = 'test@test.fi';
 const projectCreationVersion = '0.0.1';
 const sourceBucketName = 'test';
-const botfrontAdminEmail = 'test@test.fi';
 
 let ecrRepos: RasaBot[] = [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer'}];
 
@@ -50,10 +50,10 @@ test('Create rasa-stack with one bot', () => {
     mongoSecret: basestack.mongoSecret,
     graphqlSecret: basestack.graphqlSecret,
     botfrontVersion: softwareVersions.botfront,
+    botfrontAdminEmail,
     projectCreationVersion,
     rasaBots: ecrRepos,
-    sourceBucketName,
-    botfrontAdminEmail
+    sourceBucketName
   });
   const teststack = new EcsRasaStack(app, 'MyTestStack', {
     defaultRepositories,
@@ -73,16 +73,16 @@ test('Create rasa-stack with one bot', () => {
     rasaVersion: rasaTag
   });
   // THEN
-  expectCDK(teststack).to(countResources('AWS::ECS::TaskDefinition', 2)
-  .and(countResources('AWS::IAM::Role', 4))
-  .and(countResources('AWS::Logs::LogGroup', 2))
-  .and(countResources('AWS::IAM::Policy', 2))
-  .and(countResources('AWS::ECS::Service', 2))
-  .and(countResources('AWS::ServiceDiscovery::Service', 2))
-  .and(countResources('AWS::EC2::SecurityGroup', 2))
-  .and(countResources('AWS::ElasticLoadBalancingV2::Listener', 1))
-  .and(countResources('AWS::ElasticLoadBalancingV2::TargetGroup', 1))
-  );
+  const template = Template.fromStack(teststack);
+  template.resourceCountIs('AWS::ECS::TaskDefinition', 2);
+  template.resourceCountIs('AWS::IAM::Role', 4);
+  template.resourceCountIs('AWS::Logs::LogGroup', 2);
+  template.resourceCountIs('AWS::IAM::Policy', 2);
+  template.resourceCountIs('AWS::ECS::Service', 2);
+  template.resourceCountIs('AWS::ServiceDiscovery::Service', 2);
+  template.resourceCountIs('AWS::EC2::SecurityGroup', 2);
+  template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 2);
+  template.resourceCountIs('AWS::ElasticLoadBalancingV2::TargetGroup', 2);
 });
 
 test('Create rasa-stack with two bots', () => {
@@ -120,10 +120,10 @@ test('Create rasa-stack with two bots', () => {
     mongoSecret: basestack.mongoSecret,
     graphqlSecret: basestack.graphqlSecret,
     botfrontVersion: softwareVersions.botfront,
+    botfrontAdminEmail,
     projectCreationVersion,
     rasaBots: ecrRepos,
-    sourceBucketName,
-    botfrontAdminEmail
+    sourceBucketName
   });
   const teststack = new EcsRasaStack(app, 'MyTestStack', {
     defaultRepositories,
@@ -143,14 +143,14 @@ test('Create rasa-stack with two bots', () => {
     rasaVersion: rasaTag
   });
   // THEN
-  expectCDK(teststack).to(countResources('AWS::ECS::TaskDefinition', 4)
-  .and(countResources('AWS::IAM::Role', 8))
-  .and(countResources('AWS::Logs::LogGroup', 4))
-  .and(countResources('AWS::IAM::Policy', 4))
-  .and(countResources('AWS::ECS::Service', 4))
-  .and(countResources('AWS::ServiceDiscovery::Service', 4))
-  .and(countResources('AWS::EC2::SecurityGroup', 4))
-  .and(countResources('AWS::ElasticLoadBalancingV2::Listener', 2))
-  .and(countResources('AWS::ElasticLoadBalancingV2::TargetGroup', 2))
-  );
+  const template = Template.fromStack(teststack);
+  template.resourceCountIs('AWS::ECS::TaskDefinition', 4);
+  template.resourceCountIs('AWS::IAM::Role', 8);
+  template.resourceCountIs('AWS::Logs::LogGroup', 4);
+  template.resourceCountIs('AWS::IAM::Policy', 4);
+  template.resourceCountIs('AWS::ECS::Service', 4);
+  template.resourceCountIs('AWS::ServiceDiscovery::Service', 4);
+  template.resourceCountIs('AWS::EC2::SecurityGroup', 4);
+  template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 4);
+  template.resourceCountIs('AWS::ElasticLoadBalancingV2::TargetGroup', 4);
 });

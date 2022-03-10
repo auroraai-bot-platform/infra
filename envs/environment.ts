@@ -1,4 +1,4 @@
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { EcsBaseStack } from '../lib/ecs-base-stack';
 import { EcsBfStack } from '../lib/ecs-bf-stack';
 import { EcsRasaStack } from '../lib/ecs-rasa-stack';
@@ -77,7 +77,6 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
     rasaVersion: config.softwareVersions.rasa,
     actionsVersion: config.softwareVersions.actions
   });
-
   cdk.Tags.of(rasaBotStack).add('environment', config.envName);
 
   const webChatStack = new WebChatStack(app, `${config.envName}-webchat-stack`, {

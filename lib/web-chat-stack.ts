@@ -1,17 +1,17 @@
 
 import * as fs from 'fs-extra';
-
-import * as cdk from '@aws-cdk/core';
-import * as cloudfront from '@aws-cdk/aws-cloudfront';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as s3deploy from '@aws-cdk/aws-s3-deployment';
-import * as route53 from '@aws-cdk/aws-route53';
-import * as route53targets from '@aws-cdk/aws-route53-targets';
-import * as acm from '@aws-cdk/aws-certificatemanager'
+import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import { aws_cloudfront as cloudfront } from 'aws-cdk-lib';
+import { aws_s3 as s3 } from 'aws-cdk-lib';
+import { aws_s3_deployment as s3deploy } from 'aws-cdk-lib';
+import  { aws_route53 as route53 } from 'aws-cdk-lib';
+import { aws_route53_targets as route53targets } from 'aws-cdk-lib';
+import { aws_certificatemanager as acm } from 'aws-cdk-lib';
 
 import { BaseStackProps, RasaBot } from '../types/index';
 import { createPrefix } from './utilities';
-import { PolicyStatement } from '@aws-cdk/aws-iam';
+import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 interface WebChatProps extends BaseStackProps {
   domain: string;
@@ -24,7 +24,7 @@ interface WebChatProps extends BaseStackProps {
 export class WebChatStack extends cdk.Stack {
   public readonly rasaBotAddressMap: Map<RasaBot, string> = new Map<RasaBot, string>();
 
-  constructor(scope: cdk.Construct, id: string, props: WebChatProps) {
+  constructor(scope: Construct, id: string, props: WebChatProps) {
     super(scope, id, props);
     const prefix = createPrefix(props.envName, this.constructor.name);
     const frontendBucket = new s3.Bucket(this, `${prefix}frontend-bucket`, { bucketName: `${prefix}frontend-bucket`, publicReadAccess: false });
