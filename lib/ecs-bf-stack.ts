@@ -9,6 +9,7 @@ import {
   aws_s3 as s3,
   aws_secretsmanager as secrets,
   aws_lambda as lambda,
+  aws_ecs_patterns as ecsp,
   custom_resources as customResources,
   aws_iam as iam,
   aws_cloudformation as cf
@@ -36,6 +37,7 @@ interface EcsBfProps extends BaseStackProps {
 
 const restApiPort = 3030;
 const webServicePort = 8888;
+const ducklingPort = 8000;
 
 export class EcsBfStack extends Stack {
   public readonly botfrontService: ecs.FargateService;
@@ -64,6 +66,25 @@ export class EcsBfStack extends Stack {
       memoryMiB: '4096',
       compatibility:  ecs.Compatibility.FARGATE
     });
+
+    const duckling = new ecsp.ApplicationLoadBalancedFargateService(this, `${prefix}service-duckling`, {
+      loadBalancer: props.baseLoadbalancer,
+      cluster: props.baseCluster,
+      cloudMapOptions: {
+        name: 'duckling'
+      },
+      cpu: 256,
+      memoryLimitMiB: 512,
+      taskImageOptions: {
+        image: ecs.ContainerImage.fromRegistry('botfront/duckling'),
+        containerPort: ducklingPort
+      },
+      listenerPort: ducklingPort,
+      openListener: false,
+      serviceName: `${props.envName}-service-duckling`
+    });
+
+    duckling.service.connections.allowFromAnyIpv4(ec2.Port.tcp(ducklingPort));
 
     botfronttd.node.addDependency(botfrontWaitHandle);
     botfronttd.node.addDependency(botfrontAdminSecret);
