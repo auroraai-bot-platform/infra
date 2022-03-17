@@ -14,7 +14,7 @@ const actionsTag = 'latest';
 
 let ecrRepos: RasaBot[] = [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer', projectName: 'veryrealcustomer'}];
 
-test('Create base-stack with one bot without snapshot', () => {
+test('Create base-stack with one bot', () => {
   const app = new cdk.App();
   // WHEN
   const teststack = new EcsBaseStack(app, 'MyTestStack', {
@@ -38,8 +38,8 @@ test('Create base-stack with one bot without snapshot', () => {
   template.resourceCountIs('AWS::ECS::Cluster', 1);
   template.resourceCountIs('AWS::ElasticLoadBalancingV2::LoadBalancer', 1);
   template.resourceCountIs('AWS::Route53::RecordSet', 1);
-  template.resourceCountIs('AWS::EC2::VPCEndpoint', 4);
-  template.resourceCountIs('AWS::EC2::SecurityGroup', 4);
+  template.resourceCountIs('AWS::EC2::VPCEndpoint', 5);
+  template.resourceCountIs('AWS::EC2::SecurityGroup', 5);
   template.resourceCountIs('AWS::SecretsManager::Secret', 2);
 });
 
@@ -72,7 +72,7 @@ test('Create base-stack with two bots', () => {
   template.resourceCountIs('AWS::ECS::Cluster', 1);
   template.resourceCountIs('AWS::ElasticLoadBalancingV2::LoadBalancer', 1);
   template.resourceCountIs('AWS::Route53::RecordSet', 1);
-  template.resourceCountIs('AWS::EC2::VPCEndpoint', 4);
-  template.resourceCountIs('AWS::EC2::SecurityGroup', 4);
+  template.resourceCountIs('AWS::EC2::VPCEndpoint', 5);
+  template.resourceCountIs('AWS::EC2::SecurityGroup', 5);
   template.resourceCountIs('AWS::SecretsManager::Secret', 2);
 });

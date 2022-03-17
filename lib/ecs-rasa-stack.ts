@@ -1,15 +1,18 @@
+import {
+  Stack, Duration,
+  aws_logs as logs,
+  aws_ec2 as ec2,
+  aws_ecr as ecr,
+  aws_ecs as ecs,
+  aws_elasticloadbalancingv2 as elbv2,
+  aws_certificatemanager as acm,
+  aws_s3 as s3,
+  aws_secretsmanager as secrets
+} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import * as cdk from 'aws-cdk-lib';
-import { aws_ecr as ecr } from 'aws-cdk-lib';
-import { aws_ecs as ecs } from 'aws-cdk-lib';
-import { aws_elasticloadbalancingv2 as elbv2 } from 'aws-cdk-lib';
-import { aws_ec2 as ec2 } from 'aws-cdk-lib';
-import { aws_certificatemanager as acm } from 'aws-cdk-lib';
+
 import { BaseStackProps, DefaultRepositories, RasaBot } from '../types';
 import { createPrefix } from './utilities';
-import { RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
 
 interface EcsRasaProps extends BaseStackProps {
   defaultRepositories: DefaultRepositories;
@@ -19,12 +22,12 @@ interface EcsRasaProps extends BaseStackProps {
   baseCertificate: acm.ICertificate,
   botfrontService: ecs.FargateService,
   rasaBots: RasaBot[],
-  graphqlSecret: Secret,
   rasaVersion: string,
-  actionsVersion: string
+  actionsVersion: string,
+  graphqlSecret: secrets.ISecret
 }
 
-export class EcsRasaStack extends cdk.Stack {
+export class EcsRasaStack extends Stack {
   constructor(scope: Construct, id: string, props: EcsRasaProps) {
     super(scope, id, props);
     const prefix = createPrefix(props.envName, this.constructor.name);
@@ -62,7 +65,7 @@ export class EcsRasaStack extends cdk.Stack {
         },
         logging: ecs.LogDriver.awsLogs({
           streamPrefix: `${prefix}container-rasa-${rasaBot.customerName}`,
-          logRetention: RetentionDays.ONE_DAY
+          logRetention: logs.RetentionDays.ONE_DAY
         })
       }).addMountPoints(
         {
@@ -93,12 +96,12 @@ export class EcsRasaStack extends cdk.Stack {
         protocol: elbv2.ApplicationProtocol.HTTP,
         vpc: props.baseVpc,
         port: rasaBot.rasaPort,
-        deregistrationDelay: cdk.Duration.seconds(30),
+        deregistrationDelay: Duration.seconds(30),
         healthCheck: {
           path: '/',
           healthyThresholdCount: 2,
-          interval: cdk.Duration.seconds(10),
-          timeout: cdk.Duration.seconds(5)
+          interval: Duration.seconds(10),
+          timeout: Duration.seconds(5)
         }
       });
 
@@ -141,7 +144,7 @@ export class EcsRasaStack extends cdk.Stack {
         },
         logging: ecs.LogDriver.awsLogs({
           streamPrefix: `${prefix}actions-${rasaBot.customerName}`,
-          logRetention: RetentionDays.ONE_DAY
+          logRetention: logs.RetentionDays.ONE_DAY
         })
       });
 
@@ -169,10 +172,10 @@ export class EcsRasaStack extends cdk.Stack {
         healthCheck: {
           path: '/actions',
           healthyThresholdCount: 2,
-          interval: cdk.Duration.seconds(10),
-          timeout: cdk.Duration.seconds(5)
+          interval: Duration.seconds(10),
+          timeout: Duration.seconds(5)
         },
-        deregistrationDelay: cdk.Duration.seconds(30)
+        deregistrationDelay: Duration.seconds(30)
       });
 
       actionslistener.addTargetGroups(`${prefix}targetgroupadd-actions-${rasaBot.customerName}`, {
@@ -184,7 +187,7 @@ export class EcsRasaStack extends cdk.Stack {
 
       // Rasa #2
       if (rasaBot.rasaPortProd != undefined) {
-        const modelBucket = Bucket.fromBucketName(this, `${prefix}model-bucket-${rasaBot.customerName}`, `${prefix}model-bucket`)
+        const modelBucket = s3.Bucket.fromBucketName(this, `${prefix}model-bucket-${rasaBot.customerName}`, `${prefix}model-bucket`)
         const rasaProdtd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-prod-${rasaBot.customerName}`, {
           cpu: '1024',
           memoryMiB: '2048',
@@ -212,7 +215,7 @@ export class EcsRasaStack extends cdk.Stack {
           },
           logging: ecs.LogDriver.awsLogs({
             streamPrefix: `${prefix}container-rasa-prod-${rasaBot.customerName}`,
-            logRetention: RetentionDays.ONE_DAY
+            logRetention: logs.RetentionDays.ONE_DAY
           })
         });
   
@@ -276,7 +279,7 @@ export class EcsRasaStack extends cdk.Stack {
             },
             logging: ecs.LogDriver.awsLogs({
               streamPrefix: `${prefix}actions-prod-${rasaBot.customerName}`,
-              logRetention: RetentionDays.ONE_DAY
+              logRetention: logs.RetentionDays.ONE_DAY
             })
           });
     

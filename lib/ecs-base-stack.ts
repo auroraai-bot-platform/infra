@@ -1,13 +1,15 @@
+import {
+  Stack, RemovalPolicy,
+  aws_ec2 as ec2,
+  aws_ecr as ecr,
+  aws_ecs as ecs,
+  aws_elasticloadbalancingv2 as elbv2,
+  aws_route53 as route53,
+  aws_route53_targets as route53t,
+  aws_certificatemanager as acm,
+  aws_secretsmanager as secrets
+} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import * as cdk from 'aws-cdk-lib';
-import { aws_ec2 as ec2 } from 'aws-cdk-lib';
-import { aws_ecr as ecr } from 'aws-cdk-lib';
-import { aws_ecs as ecs } from 'aws-cdk-lib';
-import { aws_elasticloadbalancingv2 as elbv2 } from 'aws-cdk-lib';
-import  { aws_route53 as route53 } from 'aws-cdk-lib';
-import { aws_route53_targets as route53t } from 'aws-cdk-lib';
-import { aws_certificatemanager as acm } from 'aws-cdk-lib';
-import { aws_secretsmanager as secrets } from 'aws-cdk-lib';
 
 import * as ecrdeploy from 'cdk-ecr-deployment';
 
@@ -15,14 +17,14 @@ import { createPrefix } from './utilities';
 import { BaseStackProps, DefaultRepositories, RasaBot } from '../types';
 
 interface EcsBaseProps extends BaseStackProps {
-  defaultRepositories: DefaultRepositories;
-  domain: string;
-  subDomain: string;
-  ecrRepos: RasaBot[];
-  actionsTag: string;
+  defaultRepositories: DefaultRepositories,
+  domain: string,
+  subDomain: string,
+  ecrRepos: RasaBot[],
+  actionsTag: string
 }
 
-export class EcsBaseStack extends cdk.Stack {
+export class EcsBaseStack extends Stack {
   public readonly baseVpc: ec2.Vpc;
   public readonly baseCluster: ecs.Cluster;
   public readonly baseLoadBalancer: elbv2.ApplicationLoadBalancer;
@@ -55,6 +57,10 @@ export class EcsBaseStack extends cdk.Stack {
       service: ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS
     });
 
+    this.baseVpc.addInterfaceEndpoint(`${prefix}vpc-endpoint-secrets`, {
+      service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER
+    });
+
     const zone = route53.HostedZone.fromLookup(this, `${prefix}route53-zone`, {domainName: props.domain});
     this.baseCertificate = new acm.Certificate(this, `${prefix}acm-certificate`, {
       domainName: props.subDomain,
@@ -66,7 +72,7 @@ export class EcsBaseStack extends cdk.Stack {
       const actionsRepo = new ecr.Repository(this, `${prefix}ecr-repository-actions-${ecrRepoConfig.customerName}`, {
         imageScanOnPush: true,
         repositoryName: `${props.envName}-actions-${ecrRepoConfig.customerName}`,
-        removalPolicy: cdk.RemovalPolicy.RETAIN,
+        removalPolicy: RemovalPolicy.RETAIN,
       });
 
       new ecrdeploy.ECRDeployment(this, `${prefix}deploy-actions-image-${ecrRepoConfig.customerName}`, {
@@ -74,7 +80,6 @@ export class EcsBaseStack extends cdk.Stack {
         dest: new ecrdeploy.DockerImageName(`${actionsRepo.repositoryUri}:${props.actionsTag}`),
       });
     }
-
 
     const mongoSecretName = `${prefix}mongo-connectionstring`;
     const graphqlSecretName = `${prefix}graphql-apikey`;

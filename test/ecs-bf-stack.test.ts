@@ -45,13 +45,13 @@ test('Create botfront-stack with one bot', () => {
     baseCluster: basestack.baseCluster,
     baseLoadbalancer: basestack.baseLoadBalancer,
     baseVpc: basestack.baseVpc,
-    mongoSecret: basestack.mongoSecret,
-    graphqlSecret: basestack.graphqlSecret,
     botfrontVersion: softwareVersions.botfront,
     botfrontAdminEmail,
     projectCreationVersion,
     sourceBucketName,
-    rasaBots: ecrRepos
+    rasaBots: ecrRepos,
+    graphqlSecret: basestack.graphqlSecret,
+    mongoSecret: basestack.mongoSecret
   });
   // THEN
   const template = Template.fromStack(teststack);
@@ -63,6 +63,7 @@ test('Create botfront-stack with one bot', () => {
   template.resourceCountIs('AWS::EC2::SecurityGroup', 2);
   template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 1);
   template.resourceCountIs('AWS::ElasticLoadBalancingV2::TargetGroup', 1);
+  template.resourceCountIs('AWS::SecretsManager::Secret', 1);
 });
 
 test('Create botfront-stack with two bots', () => {
@@ -97,13 +98,13 @@ test('Create botfront-stack with two bots', () => {
       baseCluster: basestack.baseCluster,
       baseLoadbalancer: basestack.baseLoadBalancer,
       baseVpc: basestack.baseVpc,
-      mongoSecret: basestack.mongoSecret,
-      graphqlSecret: basestack.graphqlSecret,
       botfrontVersion: softwareVersions.botfront,
       botfrontAdminEmail,
       projectCreationVersion,
       sourceBucketName,
-      rasaBots: ecrRepos
+      rasaBots: ecrRepos,
+      graphqlSecret: basestack.graphqlSecret,
+      mongoSecret: basestack.mongoSecret
     });
     // THEN
     const template = Template.fromStack(teststack);
@@ -115,4 +116,5 @@ test('Create botfront-stack with two bots', () => {
     template.resourceCountIs('AWS::EC2::SecurityGroup', 2);
     template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 1);
     template.resourceCountIs('AWS::ElasticLoadBalancingV2::TargetGroup', 1);
+    template.resourceCountIs('AWS::SecretsManager::Secret', 1);
 });

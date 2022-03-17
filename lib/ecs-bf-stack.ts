@@ -1,41 +1,43 @@
+import {
+  Stack, Duration,
+  aws_logs as logs,
+  aws_ec2 as ec2,
+  aws_ecr as ecr,
+  aws_ecs as ecs,
+  aws_elasticloadbalancingv2 as elbv2,
+  aws_certificatemanager as acm,
+  aws_s3 as s3,
+  aws_secretsmanager as secrets,
+  aws_lambda as lambda,
+  custom_resources as customResources,
+  aws_iam as iam,
+  aws_cloudformation as cf
+} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import * as cdk from 'aws-cdk-lib';
-import { aws_ec2 as ec2 } from 'aws-cdk-lib';
-import { aws_ecr as ecr } from 'aws-cdk-lib';
-import { aws_ecs as ecs } from 'aws-cdk-lib';
-import { aws_elasticloadbalancingv2 as elbv2 } from 'aws-cdk-lib';
-import { aws_certificatemanager as acm } from 'aws-cdk-lib';
-import { aws_secretsmanager as secrets } from 'aws-cdk-lib';
-import { aws_s3 as s3 } from 'aws-cdk-lib';
-import {aws_lambda as lambda} from 'aws-cdk-lib';
-import { custom_resources as customResources} from 'aws-cdk-lib';
-import { aws_iam as iam } from 'aws-cdk-lib';
-import { aws_cloudformation as cf } from 'aws-cdk-lib';
 
 import { BaseStackProps, DefaultRepositories, LambdaRequest, Project, RasaBot } from '../types';
 import { createPrefix } from './utilities';
-import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 interface EcsBfProps extends BaseStackProps {
   defaultRepositories: DefaultRepositories;
-  baseCluster: ecs.Cluster,
-  baseVpc: ec2.Vpc,
-  baseLoadbalancer: elbv2.ApplicationLoadBalancer,
-  baseCertificate: acm.Certificate,
+  baseCluster: ecs.ICluster,
+  baseVpc: ec2.IVpc,
+  baseLoadbalancer: elbv2.IApplicationLoadBalancer,
+  baseCertificate: acm.ICertificate,
   domain: string,
-  mongoSecret: secrets.Secret,
-  graphqlSecret: secrets.Secret,
-  botfrontVersion: string;
-  projectCreationVersion: string;
-  sourceBucketName: string;
-  rasaBots: RasaBot[];
-  botfrontAdminEmail: string;
+  botfrontVersion: string,
+  projectCreationVersion: string,
+  sourceBucketName: string,
+  rasaBots: RasaBot[],
+  botfrontAdminEmail: string,
+  graphqlSecret: secrets.ISecret,
+  mongoSecret: secrets.ISecret
 }
 
 const restApiPort = 3030;
 const webServicePort = 8888;
 
-export class EcsBfStack extends cdk.Stack {
+export class EcsBfStack extends Stack {
   public readonly botfrontService: ecs.FargateService;
 
   constructor(scope: Construct, id: string, props: EcsBfProps) {
@@ -46,7 +48,6 @@ export class EcsBfStack extends cdk.Stack {
 
     const fileBucket = new s3.Bucket(this, `${prefix}file-bucket`, { bucketName: `${prefix}file-bucket`, publicReadAccess: true });
     const modelBucket = new s3.Bucket(this, `${prefix}model-bucket`, { bucketName: `${prefix}model-bucket` });
-
 
     const botfrontWaitHandle = new cf.CfnWaitConditionHandle(this, `${prefix}botfront-waithandle`);
 
@@ -103,7 +104,7 @@ export class EcsBfStack extends cdk.Stack {
       },
       logging: ecs.LogDriver.awsLogs({
         streamPrefix: `${prefix}botfront`,
-        logRetention: RetentionDays.ONE_DAY
+        logRetention: logs.RetentionDays.ONE_DAY
       }),
       essential: true,
     });
@@ -136,12 +137,12 @@ export class EcsBfStack extends cdk.Stack {
       protocol: elbv2.ApplicationProtocol.HTTP,
       vpc: props.baseVpc,
       port: webServicePort,
-      deregistrationDelay: cdk.Duration.seconds(30),
+      deregistrationDelay: Duration.seconds(30),
       healthCheck: {
         path: '/',
         healthyThresholdCount: 2,
-        interval: cdk.Duration.seconds(10),
-        timeout: cdk.Duration.seconds(5)
+        interval: Duration.seconds(10),
+        timeout: Duration.seconds(5)
       }
     });
 
@@ -185,12 +186,12 @@ export class EcsBfStack extends cdk.Stack {
       code: new lambda.S3Code(codeBucket, `project-creation/${props.projectCreationVersion}.zip`),
       vpc: props.baseVpc,
       vpcSubnets:  {subnets: props.baseVpc.privateSubnets},
-      timeout: cdk.Duration.minutes(1),
+      timeout: Duration.minutes(1),
       environment: {
         VERSION: props.projectCreationVersion,
         BOTFRONT_URL: botfrontInternalUrl
       },
-      logRetention: RetentionDays.ONE_DAY,
+      logRetention: logs.RetentionDays.ONE_DAY,
     });
 
     props.graphqlSecret.grantRead(projectCreationLambda);
@@ -202,8 +203,8 @@ export class EcsBfStack extends cdk.Stack {
         effect: iam.Effect.ALLOW,
         resources: [projectCreationLambda.functionArn]
       })]),
-      timeout: cdk.Duration.minutes(3),
-      logRetention: RetentionDays.ONE_DAY,
+      timeout: Duration.minutes(3),
+      logRetention: logs.RetentionDays.ONE_DAY,
       onCreate: {
         service: 'Lambda',
         action: 'invoke',

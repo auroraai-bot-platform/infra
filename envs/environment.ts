@@ -67,7 +67,7 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
     projectCreationVersion: config.softwareVersions.projectCreation,
     sourceBucketName: config.sourceBucketName,
     rasaBots: config.rasaBots,
-    botfrontAdminEmail: config.botfrontAdminEmail,
+    botfrontAdminEmail: config.botfrontAdminEmail
   });
   cdk.Tags.of(ecsBfStack).add('environment', config.envName)
 
