@@ -9,8 +9,8 @@ import { Webchat } from './webchat';
 const validProjectNameRegExp = new RegExp('^[a-zA-Z0-9]+$');
 
 export interface InfraProps extends StackProps  {
-  envName: string;
-  config: EnvironmentConfiguration;
+  envName: string,
+  config: EnvironmentConfiguration
 }
 
 export class InfraStack extends Stack {

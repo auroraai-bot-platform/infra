@@ -30,8 +30,8 @@ export class Network extends Construct {
   public readonly baseCluster: ecs.Cluster;
   public readonly baseLoadBalancer: elbv2.ApplicationLoadBalancer;
   public readonly baseCertificate: acm.Certificate;
-  public readonly mongoSecret: secrets.Secret;
-  public readonly graphqlSecret: secrets.Secret;
+  public readonly mongoSecret: secrets.ISecret;
+  public readonly graphqlSecret: secrets.ISecret;
 
   constructor(scope: Construct, id: string, props: NetworkProps) {
     super(scope, id);
@@ -85,16 +85,8 @@ export class Network extends Construct {
     const mongoSecretName = `${prefix}mongo-connectionstring`;
     const graphqlSecretName = `${prefix}graphql-apikey`;
 
-    this.mongoSecret = new secrets.Secret(this, mongoSecretName, {
-      secretName: mongoSecretName
-    });
-
-    this.graphqlSecret = new secrets.Secret(this, graphqlSecretName, {
-      secretName: graphqlSecretName,
-      generateSecretString: {
-        excludePunctuation: true
-      }
-    });
+    this.mongoSecret = secrets.Secret.fromSecretNameV2(this, mongoSecretName, mongoSecretName);
+    this.graphqlSecret = secrets.Secret.fromSecretNameV2(this, graphqlSecretName, graphqlSecretName);
 
     this.baseCluster = new ecs.Cluster(this, `${prefix}ecs-cluster`, {
       vpc: this.baseVpc,
