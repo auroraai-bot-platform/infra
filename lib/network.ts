@@ -17,12 +17,12 @@ import { createPrefix } from './utilities';
 import { DefaultRepositories, RasaBot } from '../types';
 
 export interface NetworkProps {
-  envName: string,
-  defaultRepositories: DefaultRepositories,
-  domain: string,
-  subDomain: string,
-  ecrRepos: RasaBot[],
-  actionsTag: string
+  envName: string;
+  defaultRepositories: DefaultRepositories;
+  domain: string;
+  subDomain: string;
+  ecrRepos: RasaBot[];
+  actionsTag: string;
 }
 
 export class Network extends Construct {

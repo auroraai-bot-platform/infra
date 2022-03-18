@@ -9,8 +9,8 @@ import { Webchat } from './webchat';
 const validProjectNameRegExp = new RegExp('^[a-zA-Z0-9]+$');
 
 export interface InfraProps extends StackProps  {
-  envName: string,
-  config: EnvironmentConfiguration
+  envName: string;
+  config: EnvironmentConfiguration;
 }
 
 export class InfraStack extends Stack {
@@ -47,7 +47,6 @@ export class InfraStack extends Stack {
       throw new Error(`Env: ${props.config.envName}. Cannot create environment because of invalid projectNames. ${JSON.stringify(invalidProjectNames)}`);
     }
 
-
     const network = new Network(this, `${props.config.envName}-network`, {
       defaultRepositories: props.config.defaultRepositories,
       envName: props.config.envName,
@@ -56,8 +55,6 @@ export class InfraStack extends Stack {
       domain: props.config.domain,
       actionsTag: props.config.softwareVersions.actions
     });
-
-
 
     const botfront = new Botfront(this, `${props.config.envName}-botfront`, {
       defaultRepositories: props.config.defaultRepositories,
