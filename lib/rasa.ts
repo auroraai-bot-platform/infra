@@ -1,5 +1,5 @@
 import {
-  Stack, Duration,
+  Duration,
   aws_logs as logs,
   aws_ec2 as ec2,
   aws_ecr as ecr,
@@ -11,10 +11,11 @@ import {
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
-import { BaseStackProps, DefaultRepositories, RasaBot } from '../types';
+import { DefaultRepositories, RasaBot } from '../types';
 import { createPrefix } from './utilities';
 
-interface EcsRasaProps extends BaseStackProps {
+interface RasaProps {
+  envName: string,
   defaultRepositories: DefaultRepositories;
   baseCluster: ecs.ICluster,
   baseVpc: ec2.IVpc,
@@ -27,9 +28,9 @@ interface EcsRasaProps extends BaseStackProps {
   graphqlSecret: secrets.ISecret
 }
 
-export class EcsRasaStack extends Stack {
-  constructor(scope: Construct, id: string, props: EcsRasaProps) {
-    super(scope, id, props);
+export class Rasa extends Construct {
+  constructor(scope: Construct, id: string, props: RasaProps) {
+    super(scope, id);
     const prefix = createPrefix(props.envName, this.constructor.name);
 
     for (const rasaBot of props.rasaBots) {

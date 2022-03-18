@@ -1,4 +1,4 @@
-import { Template } from 'aws-cdk-lib/assertions';
+/* import { Template } from 'aws-cdk-lib/assertions';
 import * as cdk from 'aws-cdk-lib';
 import { EcsBfStack } from '../lib/ecs-bf-stack';
 import { EcsBaseStack } from '../lib/ecs-base-stack';
@@ -117,4 +117,4 @@ test('Create botfront-stack with two bots', () => {
     template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 1);
     template.resourceCountIs('AWS::ElasticLoadBalancingV2::TargetGroup', 1);
     template.resourceCountIs('AWS::SecretsManager::Secret', 1);
-});
+}); */

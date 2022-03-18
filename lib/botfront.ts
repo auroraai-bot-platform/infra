@@ -1,5 +1,5 @@
 import {
-  Stack, Duration,
+  Duration,
   aws_logs as logs,
   aws_ec2 as ec2,
   aws_ecr as ecr,
@@ -16,10 +16,11 @@ import {
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
-import { BaseStackProps, DefaultRepositories, LambdaRequest, Project, RasaBot } from '../types';
+import { DefaultRepositories, LambdaRequest, Project, RasaBot } from '../types';
 import { createPrefix } from './utilities';
 
-interface EcsBfProps extends BaseStackProps {
+interface BotfrontProps {
+  envName: string,
   defaultRepositories: DefaultRepositories;
   baseCluster: ecs.ICluster,
   baseVpc: ec2.IVpc,
@@ -39,11 +40,11 @@ const restApiPort = 3030;
 const webServicePort = 8888;
 const ducklingPort = 8000;
 
-export class EcsBfStack extends Stack {
+export class Botfront extends Construct {
   public readonly botfrontService: ecs.FargateService;
 
-  constructor(scope: Construct, id: string, props: EcsBfProps) {
-    super(scope, id, props);
+  constructor(scope: Construct, id: string, props: BotfrontProps) {
+    super(scope, id);
 
     const prefix = createPrefix(props.envName, this.constructor.name);
     const bfrepo = ecr.Repository.fromRepositoryName(this, `${prefix}repository-botfront`, props.defaultRepositories.botfrontRepository);

@@ -1,9 +1,3 @@
-import * as cdk from 'aws-cdk-lib';
-
-export interface BaseStackProps extends cdk.StackProps {
-  envName: string
-}
-
 export interface RasaBot {
   actionsPort: number;
   actionsPortProd?: number

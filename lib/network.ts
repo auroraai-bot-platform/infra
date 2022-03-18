@@ -1,5 +1,5 @@
 import {
-  Stack, RemovalPolicy,
+  RemovalPolicy,
   aws_ec2 as ec2,
   aws_ecr as ecr,
   aws_ecs as ecs,
@@ -14,9 +14,10 @@ import { Construct } from 'constructs';
 import * as ecrdeploy from 'cdk-ecr-deployment';
 
 import { createPrefix } from './utilities';
-import { BaseStackProps, DefaultRepositories, RasaBot } from '../types';
+import { DefaultRepositories, RasaBot } from '../types';
 
-interface EcsBaseProps extends BaseStackProps {
+export interface NetworkProps {
+  envName: string,
   defaultRepositories: DefaultRepositories,
   domain: string,
   subDomain: string,
@@ -24,7 +25,7 @@ interface EcsBaseProps extends BaseStackProps {
   actionsTag: string
 }
 
-export class EcsBaseStack extends Stack {
+export class Network extends Construct {
   public readonly baseVpc: ec2.Vpc;
   public readonly baseCluster: ecs.Cluster;
   public readonly baseLoadBalancer: elbv2.ApplicationLoadBalancer;
@@ -32,8 +33,8 @@ export class EcsBaseStack extends Stack {
   public readonly mongoSecret: secrets.Secret;
   public readonly graphqlSecret: secrets.Secret;
 
-  constructor(scope: Construct, id: string, props: EcsBaseProps) {
-    super(scope, id, props);
+  constructor(scope: Construct, id: string, props: NetworkProps) {
+    super(scope, id);
     const prefix = createPrefix(props.envName, this.constructor.name);
 
     this.baseVpc = new ec2.Vpc(this, `${prefix}vpc`, {
