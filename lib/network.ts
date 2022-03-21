@@ -30,8 +30,6 @@ export class Network extends Construct {
   public readonly baseCluster: ecs.Cluster;
   public readonly baseLoadBalancer: elbv2.ApplicationLoadBalancer;
   public readonly baseCertificate: acm.Certificate;
-  public readonly mongoSecret: secrets.ISecret;
-  public readonly graphqlSecret: secrets.ISecret;
 
   constructor(scope: Construct, id: string, props: NetworkProps) {
     super(scope, id);
@@ -72,8 +70,7 @@ export class Network extends Construct {
     for (const ecrRepoConfig of props.ecrRepos) {
       const actionsRepo = new ecr.Repository(this, `${prefix}ecr-repository-actions-${ecrRepoConfig.customerName}`, {
         imageScanOnPush: true,
-        repositoryName: `${props.envName}-actions-${ecrRepoConfig.customerName}`,
-        removalPolicy: RemovalPolicy.RETAIN,
+        repositoryName: `${props.envName}-actions-${ecrRepoConfig.customerName}`
       });
 
       new ecrdeploy.ECRDeployment(this, `${prefix}deploy-actions-image-${ecrRepoConfig.customerName}`, {
@@ -81,12 +78,6 @@ export class Network extends Construct {
         dest: new ecrdeploy.DockerImageName(`${actionsRepo.repositoryUri}:${props.actionsTag}`),
       });
     }
-
-    const mongoSecretName = `${prefix}mongo-connectionstring`;
-    const graphqlSecretName = `${prefix}graphql-apikey`;
-
-    this.mongoSecret = secrets.Secret.fromSecretNameV2(this, mongoSecretName, mongoSecretName);
-    this.graphqlSecret = secrets.Secret.fromSecretNameV2(this, graphqlSecretName, graphqlSecretName);
 
     this.baseCluster = new ecs.Cluster(this, `${prefix}ecs-cluster`, {
       vpc: this.baseVpc,

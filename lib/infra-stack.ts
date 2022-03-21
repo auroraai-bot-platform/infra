@@ -64,8 +64,6 @@ export class InfraStack extends Stack {
       baseLoadbalancer: network.baseLoadBalancer,
       baseVpc: network.baseVpc,
       domain: props.config.domain,
-      mongoSecret: network.mongoSecret,
-      graphqlSecret: network.graphqlSecret,
       botfrontVersion: props.config.softwareVersions.botfront,
       projectCreationVersion: props.config.softwareVersions.projectCreation,
       sourceBucketName: props.config.sourceBucketName,
@@ -82,7 +80,6 @@ export class InfraStack extends Stack {
       baseCertificate: network.baseCertificate,
       botfrontService: botfront.botfrontService,
       rasaBots: props.config.rasaBots,
-      graphqlSecret: network.graphqlSecret,
       rasaVersion: props.config.softwareVersions.rasa,
       actionsVersion: props.config.softwareVersions.actions
     });

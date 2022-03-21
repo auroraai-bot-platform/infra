@@ -7,7 +7,8 @@ import {
   aws_s3_deployment as s3deploy,
   aws_route53 as route53,
   aws_route53_targets as route53targets,
-  aws_certificatemanager as acm
+  aws_certificatemanager as acm,
+  RemovalPolicy
 } from 'aws-cdk-lib';
 
 import { RasaBot } from '../types/index';
@@ -29,7 +30,7 @@ export class Webchat extends Construct {
   constructor(scope: Construct, id: string, props: WebChatProps) {
     super(scope, id);
     const prefix = createPrefix(props.envName, this.constructor.name);
-    const frontendBucket = new s3.Bucket(this, `${prefix}frontend-bucket`, { bucketName: `${prefix}frontend-bucket`, publicReadAccess: false });
+    const frontendBucket = new s3.Bucket(this, `${prefix}frontend-bucket`, { bucketName: `${prefix}frontend-bucket`, publicReadAccess: false, autoDeleteObjects: true, removalPolicy: RemovalPolicy.DESTROY });
 
     const cloudfrontAI = new cloudfront.OriginAccessIdentity(this, `${prefix}distribution-access-identity`, {
     });
