@@ -9,13 +9,14 @@
 ## Manual steps
 
 ### Creating an environment
-- Allow NAT gateway's elastic IP to mongodb (Does not stop deployment)
+- Allow NAT gateway's elastic IP to mongodb (Does not stop deployment). If IP does not exist yet, allow temporary access from 0.0.0.0/0 to mongodb
 - Populate secret of the environment in secretsmanager (Does not stop deployment)
+  - Add base secrets with notation `environment/tech/name`, these will not overlap with cloudformation secrets and won't be deleted with templates  
+ 
 export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration) {
 - Create a new environment with the `createEnvironment` function and run `cdk deploy <envName>-*`
 ### Destroying an environment
 - Empty and delete ECR repos manually if you destroy environments (After environment destruction)
-- Empty and delete the frontend and file s3 buckets for the destroyed environment (After environment destruction)
 
 ### Adding a rasabot instance
 - Add a new entry to the `RasaBot` array
