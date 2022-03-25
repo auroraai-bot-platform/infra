@@ -29,12 +29,18 @@ const demoSoftwareVersions: SoftwareVersions = {
 const demoRasaBots: RasaBot[] = [
   {
     rasaPort: 5008,
-    rasaPortProd: 10008,
     actionsPort: 5058,
-    actionsPortProd: 10058,
     projectId: 'testbot',
     customerName: 'testbot',
-    hasProd: true,
+    isProd: false,
+    projectName: 'testbot'
+  },
+  {
+    rasaPort: 10008,
+    actionsPort: 10058,
+    projectId: 'testbot',
+    customerName: 'testbot',
+    isProd: true,
     projectName: 'testbot'
   },
   {
@@ -42,7 +48,8 @@ const demoRasaBots: RasaBot[] = [
     actionsPort: 5059,
     projectId: 'palmu',
     customerName: 'palmu',
-    projectName: 'palmu'
+    projectName: 'palmu',
+    isProd: false
   }
 ];
 
@@ -87,6 +94,7 @@ const customerRasaBots: RasaBot[] = [
     projectId: 'HFqcqN9LEiDo8u2N7', 
     customerName: 'hyte-firstbot',
     projectName: 'hytebotti',
+    isProd: false,
     additionalConfig: {
       intents: {
         onerva: '/aloita{"oma_organisaatio": "onerva"}',
@@ -100,6 +108,7 @@ const customerRasaBots: RasaBot[] = [
   {
     rasaPort: 5008,
     actionsPort: 5058,
+    isProd: false,
     projectId: '5pdZnBudb8vgahE5X',
     customerName: 'iht-botti',
     projectName: 'ihtbotti'
@@ -107,6 +116,7 @@ const customerRasaBots: RasaBot[] = [
   {
     rasaPort: 5009,
     actionsPort: 5059,
+    isProd: false,
     projectId: '5N9KN36CprezbZiND',
     customerName: 'kupotti',
     projectName: 'kupotti'
@@ -114,6 +124,7 @@ const customerRasaBots: RasaBot[] = [
   {
     rasaPort: 5010,
     actionsPort: 5060,
+    isProd: false,
     projectId: 'RdZ2sZtx5DXp6r6Ja',
     customerName: 'kukibotti',
     projectName: 'kukibotti'
@@ -121,6 +132,7 @@ const customerRasaBots: RasaBot[] = [
   {
     rasaPort: 5011,
     actionsPort: 5061,
+    isProd: false,
     projectId: 'RE6gaLdvsMxGwKAcA',
     customerName: 'hdl-botti',
     projectName: 'hdlbotti'
@@ -128,6 +140,7 @@ const customerRasaBots: RasaBot[] = [
   {
     rasaPort: 5012,
     actionsPort: 5062,
+    isProd: false,
     projectId: 'Tyofez6zTQDxxSFZT',
     customerName: 'albotti',
     projectName: 'albotti'

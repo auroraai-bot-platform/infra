@@ -68,12 +68,12 @@ export class Network extends Construct {
 
     const actionsBaseRepo = ecr.Repository.fromRepositoryName(this, `${prefix}ecr-actions`, props.defaultRepositories.actionsRepository)
     for (const ecrRepoConfig of props.ecrRepos) {
-      const actionsRepo = new ecr.Repository(this, `${prefix}ecr-repository-actions-${ecrRepoConfig.customerName}`, {
+      const actionsRepo = new ecr.Repository(this, `${prefix}ecr-repository-actions${ecrRepoConfig.isProd? '-prod': ''}-${ecrRepoConfig.customerName}`, {
         imageScanOnPush: true,
         repositoryName: `${props.envName}-actions-${ecrRepoConfig.customerName}`
       });
 
-      new ecrdeploy.ECRDeployment(this, `${prefix}deploy-actions-image-${ecrRepoConfig.customerName}`, {
+      new ecrdeploy.ECRDeployment(this, `${prefix}deploy-actions-image${ecrRepoConfig.isProd? '-prod': ''}-${ecrRepoConfig.customerName}`, {
         src: new ecrdeploy.DockerImageName(`${actionsBaseRepo.repositoryUri}:${props.actionsTag}`),
         dest: new ecrdeploy.DockerImageName(`${actionsRepo.repositoryUri}:${props.actionsTag}`),
       });

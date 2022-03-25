@@ -17,7 +17,7 @@ export class InfraStack extends Stack {
 
   constructor(scope: Construct, id: string, props: InfraProps) {
     super(scope, id, props);
-    const allPorts = props.config.rasaBots.map(bot => [bot.rasaPort, bot.rasaPortProd]).flat().filter((port) => port != undefined);
+    const allPorts = props.config.rasaBots.map(bot => [bot.rasaPort]).flat().filter((port) => port != undefined);
     const uniquePortCount = new Set(allPorts).size;
     const hasPortCollision = uniquePortCount !== allPorts.length;
 
@@ -25,7 +25,7 @@ export class InfraStack extends Stack {
       throw new Error(`Env: ${props.config.envName}. Cannot create environment because of colliding port configurations. ${JSON.stringify(props.config.rasaBots)}`);
     }
 
-    const allProjectIds = props.config.rasaBots.map(bot => bot.projectId);
+    const allProjectIds = props.config.rasaBots.map(bot => bot.projectId + bot.isProd);
     const unqiueProjectIdCount = new Set(allProjectIds).size;
     const hasProjectIdCollision = unqiueProjectIdCount !== allProjectIds.length;
 
@@ -33,7 +33,7 @@ export class InfraStack extends Stack {
       throw new Error(`Env: ${props.config.envName}. Cannot create environment because of colliding projectId configurations. ${JSON.stringify(props.config.rasaBots)}`);
     }
 
-    const allProjectNames = props.config.rasaBots.map(bot => bot.projectId);
+    const allProjectNames = props.config.rasaBots.map(bot => bot.projectId + bot.isProd);
     const unqiueProjectNameCount = new Set(allProjectNames).size;
     const hasProjectNameCollision = unqiueProjectNameCount !== allProjectNames.length;
 
@@ -71,26 +71,38 @@ export class InfraStack extends Stack {
       botfrontAdminEmail: props.config.botfrontAdminEmail
     });
 
-    new Rasa(this, `${props.config.envName}-rasa`, {
-      defaultRepositories: props.config.defaultRepositories,
-      envName: props.config.envName,
-      baseCluster: network.baseCluster,
-      baseVpc: network.baseVpc,
-      baseLoadbalancer: network.baseLoadBalancer,
-      baseCertificate: network.baseCertificate,
-      botfrontService: botfront.botfrontService,
-      rasaBots: props.config.rasaBots,
-      rasaVersion: props.config.softwareVersions.rasa,
-      actionsVersion: props.config.softwareVersions.actions
-    });
+    props.config.rasaBots.map( rasaBot => 
+      new Rasa(this,  `${rasaBot.customerName}${rasaBot.isProd? '-prod': ''}-rasa`, {
+        defaultRepositories: props.config.defaultRepositories,
+        envName: props.config.envName,
+        baseCluster: network.baseCluster,
+        baseVpc: network.baseVpc,
+        baseLoadbalancer: network.baseLoadBalancer,
+        baseCertificate: network.baseCertificate,
+        botfrontService: botfront.botfrontService,
+        rasaVersion: props.config.softwareVersions.rasa,
+        actionsVersion: props.config.softwareVersions.actions,
+        actionsPort: rasaBot.actionsPort,
+        customerName: rasaBot.customerName,
+        isProd: rasaBot.isProd,
+        projectId: rasaBot.projectId,
+        rasaPort: rasaBot.rasaPort
+      })
+    )
 
-    new Webchat(this, `${props.config.envName}-webchat`, {
+    props.config.rasaBots.map( rasaBot => 
+    new Webchat(this, `${rasaBot.customerName}${rasaBot.isProd? '-prod': ''}-webchat`, {
       envName: props.config.envName,
       rasaBots: props.config.rasaBots,
       domain: props.config.domain,
       subDomain: props.config.subDomain,
       frontendVersion: props.config.softwareVersions.frontend,
-      sourceBucketName: props.config.sourceBucketName
-    });
+      sourceBucketName: props.config.sourceBucketName,
+      additionalConfig: rasaBot.additionalConfig,
+      customerName: rasaBot.customerName,
+      projectName: rasaBot.projectName,
+      rasaPort: rasaBot.rasaPort
+    })
+    )
   }
 }

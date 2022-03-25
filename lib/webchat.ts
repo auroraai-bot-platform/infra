@@ -21,7 +21,11 @@ interface WebChatProps {
   rasaBots: RasaBot[],
   subDomain: string,
   frontendVersion: string,
-  sourceBucketName: string
+  sourceBucketName: string,
+  customerName: string,
+  projectName: string,
+  additionalConfig: RasaBot["additionalConfig"],
+  rasaPort: number
 }
 
 export class Webchat extends Construct {
@@ -65,70 +69,66 @@ export class Webchat extends Construct {
     // clear up the temp folder
     fs.removeSync(`temp/${prefix}`);
 
-    for (const rasaBot of props.rasaBots) {
+    const rasaBotDomain = `${props.projectName}.${props.subDomain}`;
 
-      const rasaBotDomain = `${rasaBot.projectName}.${props.subDomain}`;
+    // write rasa config files to temp folder for the deployment
+    fs.mkdirSync(`temp/${prefix}/${props.customerName}/config`, { recursive: true });
 
-      // write rasa config files to temp folder for the deployment
-      fs.mkdirSync(`temp/${prefix}/${rasaBot.customerName}/config`, { recursive: true });
+    const config = {
+      additionalConfig: props.additionalConfig,
+      language: 'fi',
+      url: `${props.subDomain}:${props.rasaPort}`,
+    };
 
-      const config = {
-        additionalConfig: rasaBot.additionalConfig,
-        language: 'fi',
-        url: `${props.subDomain}:${rasaBot.rasaPort}`,
-      };
+    fs.writeFileSync(`temp/${prefix}/${props.customerName}/config/rasa-config.json`, JSON.stringify(config));
 
-      fs.writeFileSync(`temp/${prefix}/${rasaBot.customerName}/config/rasa-config.json`, JSON.stringify(config));
-
-      const cloudFrontWebDistribution = new cloudfront.CloudFrontWebDistribution(this, `${prefix}frontend-distribution-${rasaBot.customerName}`, {
-        defaultRootObject: 'index.html',
-        errorConfigurations: [{
-          errorCode: 404,
-          errorCachingMinTtl: 60,
-          responseCode: 200,
-          responsePagePath: '/index.html'
-        }],
-        originConfigs: [
-          {
-            s3OriginSource: {
-              originAccessIdentity: cloudfrontAI,
-              originPath: `/frontend/${props.frontendVersion}`,
-              s3BucketSource: codeBucket,
-            },
-            behaviors: [
-              {
-                isDefaultBehavior: true,
-              }
-            ]
+    const cloudFrontWebDistribution = new cloudfront.CloudFrontWebDistribution(this, `${prefix}frontend-distribution-${props.customerName}`, {
+      defaultRootObject: 'index.html',
+      errorConfigurations: [{
+        errorCode: 404,
+        errorCachingMinTtl: 60,
+        responseCode: 200,
+        responsePagePath: '/index.html'
+      }],
+      originConfigs: [
+        {
+          s3OriginSource: {
+            originAccessIdentity: cloudfrontAI,
+            originPath: `/frontend/${props.frontendVersion}`,
+            s3BucketSource: codeBucket,
           },
-          {
-            s3OriginSource: {
-              originAccessIdentity: cloudfrontAI,
-              s3BucketSource: frontendBucket,
-              originPath: `/frontend-rasa-config/${rasaBot.customerName}`,
-            },
-            behaviors: [
-              {
-                pathPattern: '/config/*'
-              }
-            ]
-          }
+          behaviors: [
+            {
+              isDefaultBehavior: true,
+            }
+          ]
+        },
+        {
+          s3OriginSource: {
+            originAccessIdentity: cloudfrontAI,
+            s3BucketSource: frontendBucket,
+            originPath: `/frontend-rasa-config/${props.customerName}`,
+          },
+          behaviors: [
+            {
+              pathPattern: '/config/*'
+            }
+          ]
+        }
+      ],
+      viewerCertificate: cloudfront.ViewerCertificate.fromAcmCertificate(cert, {
+        aliases: [
+          rasaBotDomain
         ],
-        viewerCertificate: cloudfront.ViewerCertificate.fromAcmCertificate(cert, {
-          aliases: [
-            rasaBotDomain
-          ],
-          securityPolicy: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2019
-        })
-      });
+        securityPolicy: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2019
+      })
+    });
 
-      new route53.ARecord(this, `${prefix}cf-route53-${rasaBot.customerName}`, {
-        target: route53.RecordTarget.fromAlias(new route53targets.CloudFrontTarget(cloudFrontWebDistribution)),
-        zone: hostedZone,
-        recordName: rasaBotDomain
-      });
-
-    }
+    new route53.ARecord(this, `${prefix}cf-route53-${props.customerName}`, {
+      target: route53.RecordTarget.fromAlias(new route53targets.CloudFrontTarget(cloudFrontWebDistribution)),
+      zone: hostedZone,
+      recordName: rasaBotDomain
+    });
 
     new s3deploy.BucketDeployment(this, `${prefix}frontend-bucket-deployment`, {
       sources: [s3deploy.Source.asset(`temp/${prefix}`)],

@@ -13,7 +13,7 @@ let config: EnvironmentConfiguration = {
     region: 'test'
   },
   envName: 'test',
-  rasaBots: [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer', projectName: 'veryrealcustomer'}],
+  rasaBots: [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer', projectName: 'veryrealcustomer', isProd: false}],
   softwareVersions,
   sourceBucketName: 'test',
   subDomain: 'test'
@@ -55,8 +55,8 @@ test('Create infra-stack with one bot', () => {
 test('Create rasa-stack with two bots', () => {
   const app = new App();
   config.rasaBots =  [
-    {rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer', projectName: 'veryrealcustomer'},
-    {rasaPort: 3, actionsPort: 4, projectId: 'veryrealid2', customerName: 'veryrealcustomer2', projectName: 'veryrealcustomer2'}
+    {rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer', projectName: 'veryrealcustomer', isProd: false},
+    {rasaPort: 3, actionsPort: 4, projectId: 'veryrealid2', customerName: 'veryrealcustomer2', projectName: 'veryrealcustomer2', isProd: false}
   ];
 
   // WHEN
@@ -81,9 +81,9 @@ test('Create rasa-stack with two bots', () => {
   template.resourceCountIs('AWS::EC2::SecurityGroup', 12);
   template.resourceCountIs('AWS::SecretsManager::Secret', 1);
   template.resourceCountIs('AWS::ECS::TaskDefinition', 6);
-  template.resourceCountIs('AWS::IAM::Role', 19);
+  template.resourceCountIs('AWS::IAM::Role', 20);
   template.resourceCountIs('AWS::Logs::LogGroup', 6);
-  template.resourceCountIs('AWS::IAM::Policy', 13);
+  template.resourceCountIs('AWS::IAM::Policy', 14);
   template.resourceCountIs('AWS::ECS::Service', 6);
   template.resourceCountIs('AWS::ServiceDiscovery::Service', 6);
   template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 6);

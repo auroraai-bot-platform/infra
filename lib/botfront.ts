@@ -191,8 +191,8 @@ export class Botfront extends Construct {
           host: `http://rasa-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.rasaPort}`,
           baseUrl: `https://${props.envName}.${props.domain}:${bot.rasaPort}`,
           actionEndpoint: `http://actions-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}/webhook`,
-          hasProd: bot.hasProd,
-          prodBaseUrl: `https://${props.envName}.${props.domain}:${bot.rasaPortProd}`,
+          hasProd: bot.isProd,
+          prodBaseUrl: `https://${props.envName}.${props.domain}:${bot.rasaPort}`,
           prodActionEndpoint: `http://actions-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}/webhook`,
         }
       })
