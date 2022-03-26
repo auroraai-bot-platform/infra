@@ -23,14 +23,14 @@ interface EcsRasaProps extends BaseStackProps {
   botfrontService: ecs.FargateService,
   rasaBots: RasaBot[],
   rasaVersion: string,
-  actionsVersion: string,
-  graphqlSecret: secrets.ISecret
+  actionsVersion: string
 }
 
 export class EcsRasaStack extends Stack {
   constructor(scope: Construct, id: string, props: EcsRasaProps) {
     super(scope, id, props);
     const prefix = createPrefix(props.envName, this.constructor.name);
+    const graphqlSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}botfront-graphql-secret`, `${props.envName}/graphql/apikey`);
 
     for (const rasaBot of props.rasaBots) {
 
@@ -54,14 +54,14 @@ export class EcsRasaStack extends Stack {
           hostPort: rasaBot.rasaPort,
           containerPort: rasaBot.rasaPort
         }],
-        command: ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", props.graphqlSecret.secretValue.toString()],
+        command: ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", graphqlSecret.secretValue.toString()],
         environment: {
           BF_PROJECT_ID: rasaBot.projectId,
           PORT: rasaBot.rasaPort.toString(),
           BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`
         },
         secrets: {
-          API_KEY: ecs.Secret.fromSecretsManager(props.graphqlSecret)
+          API_KEY: ecs.Secret.fromSecretsManager(graphqlSecret)
         },
         logging: ecs.LogDriver.awsLogs({
           streamPrefix: `${prefix}container-rasa-${rasaBot.customerName}`,
@@ -203,7 +203,7 @@ export class EcsRasaStack extends Stack {
             hostPort: rasaBot.rasaPortProd,
             containerPort: rasaBot.rasaPortProd
           }],
-          command: ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPortProd.toString(), "--auth-token", props.graphqlSecret.secretValue.toString()],
+          command: ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPortProd.toString(), "--auth-token", graphqlSecret.secretValue.toString()],
           environment: {
             BF_PROJECT_ID: rasaBot.projectId,
             PORT: rasaBot.rasaPort.toString(),
@@ -211,7 +211,7 @@ export class EcsRasaStack extends Stack {
             BUCKET_NAME: modelBucket.bucketName
           },
           secrets: {
-            API_KEY: ecs.Secret.fromSecretsManager(props.graphqlSecret)
+            API_KEY: ecs.Secret.fromSecretsManager(graphqlSecret)
           },
           logging: ecs.LogDriver.awsLogs({
             streamPrefix: `${prefix}container-rasa-prod-${rasaBot.customerName}`,

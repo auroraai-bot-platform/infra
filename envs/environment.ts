@@ -61,8 +61,6 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
     baseVpc: ecsBaseStack.baseVpc,
     domain: config.domain,
     env: config.env,
-    mongoSecret: ecsBaseStack.mongoSecret,
-    graphqlSecret: ecsBaseStack.graphqlSecret,
     botfrontVersion: config.softwareVersions.botfront,
     projectCreationVersion: config.softwareVersions.projectCreation,
     sourceBucketName: config.sourceBucketName,
@@ -81,7 +79,6 @@ export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration
     botfrontService: ecsBfStack.botfrontService,
     rasaBots: config.rasaBots,
     env: config.env,
-    graphqlSecret: ecsBaseStack.graphqlSecret,
     rasaVersion: config.softwareVersions.rasa,
     actionsVersion: config.softwareVersions.actions
   });

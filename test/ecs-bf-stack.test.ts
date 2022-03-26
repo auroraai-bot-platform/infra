@@ -49,18 +49,16 @@ test('Create botfront-stack with one bot', () => {
     botfrontAdminEmail,
     projectCreationVersion,
     sourceBucketName,
-    rasaBots: ecrRepos,
-    graphqlSecret: basestack.graphqlSecret,
-    mongoSecret: basestack.mongoSecret
+    rasaBots: ecrRepos
   });
   // THEN
   const template = Template.fromStack(teststack);
-  template.resourceCountIs('AWS::ECS::TaskDefinition', 1);
-  template.resourceCountIs('AWS::IAM::Role', 5);
-  template.resourceCountIs('AWS::IAM::Policy', 5);
-  template.resourceCountIs('AWS::ECS::Service', 1);
-  template.resourceCountIs('AWS::ServiceDiscovery::Service', 1);
-  template.resourceCountIs('AWS::EC2::SecurityGroup', 2);
+  template.resourceCountIs('AWS::ECS::TaskDefinition', 2);
+  template.resourceCountIs('AWS::IAM::Role', 7);
+  template.resourceCountIs('AWS::IAM::Policy', 6);
+  template.resourceCountIs('AWS::ECS::Service', 2);
+  template.resourceCountIs('AWS::ServiceDiscovery::Service', 2);
+  template.resourceCountIs('AWS::EC2::SecurityGroup', 3);
   template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 1);
   template.resourceCountIs('AWS::ElasticLoadBalancingV2::TargetGroup', 1);
   template.resourceCountIs('AWS::SecretsManager::Secret', 1);
@@ -102,18 +100,16 @@ test('Create botfront-stack with two bots', () => {
       botfrontAdminEmail,
       projectCreationVersion,
       sourceBucketName,
-      rasaBots: ecrRepos,
-      graphqlSecret: basestack.graphqlSecret,
-      mongoSecret: basestack.mongoSecret
+      rasaBots: ecrRepos
     });
     // THEN
     const template = Template.fromStack(teststack);
-    template.resourceCountIs('AWS::ECS::TaskDefinition', 1);
-    template.resourceCountIs('AWS::IAM::Role', 5);
-    template.resourceCountIs('AWS::IAM::Policy', 5);
-    template.resourceCountIs('AWS::ECS::Service', 1);
-    template.resourceCountIs('AWS::ServiceDiscovery::Service', 1);
-    template.resourceCountIs('AWS::EC2::SecurityGroup', 2);
+    template.resourceCountIs('AWS::ECS::TaskDefinition', 2);
+    template.resourceCountIs('AWS::IAM::Role', 7);
+    template.resourceCountIs('AWS::IAM::Policy', 6);
+    template.resourceCountIs('AWS::ECS::Service', 2);
+    template.resourceCountIs('AWS::ServiceDiscovery::Service', 2);
+    template.resourceCountIs('AWS::EC2::SecurityGroup', 3);
     template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 1);
     template.resourceCountIs('AWS::ElasticLoadBalancingV2::TargetGroup', 1);
     template.resourceCountIs('AWS::SecretsManager::Secret', 1);

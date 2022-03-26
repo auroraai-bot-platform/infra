@@ -6,8 +6,7 @@ import {
   aws_elasticloadbalancingv2 as elbv2,
   aws_route53 as route53,
   aws_route53_targets as route53t,
-  aws_certificatemanager as acm,
-  aws_secretsmanager as secrets
+  aws_certificatemanager as acm
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
@@ -29,8 +28,6 @@ export class EcsBaseStack extends Stack {
   public readonly baseCluster: ecs.Cluster;
   public readonly baseLoadBalancer: elbv2.ApplicationLoadBalancer;
   public readonly baseCertificate: acm.Certificate;
-  public readonly mongoSecret: secrets.Secret;
-  public readonly graphqlSecret: secrets.Secret;
 
   constructor(scope: Construct, id: string, props: EcsBaseProps) {
     super(scope, id, props);
@@ -80,20 +77,6 @@ export class EcsBaseStack extends Stack {
         dest: new ecrdeploy.DockerImageName(`${actionsRepo.repositoryUri}:${props.actionsTag}`),
       });
     }
-
-    const mongoSecretName = `${prefix}mongo-connectionstring`;
-    const graphqlSecretName = `${prefix}graphql-apikey`;
-
-    this.mongoSecret = new secrets.Secret(this, mongoSecretName, {
-      secretName: mongoSecretName
-    });
-
-    this.graphqlSecret = new secrets.Secret(this, graphqlSecretName, {
-      secretName: graphqlSecretName,
-      generateSecretString: {
-        excludePunctuation: true
-      }
-    });
 
     this.baseCluster = new ecs.Cluster(this, `${prefix}ecs-cluster`, {
       vpc: this.baseVpc,

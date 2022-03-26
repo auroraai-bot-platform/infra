@@ -47,8 +47,6 @@ test('Create rasa-stack with one bot', () => {
     baseCluster: basestack.baseCluster,
     baseLoadbalancer: basestack.baseLoadBalancer,
     baseVpc: basestack.baseVpc,
-    mongoSecret: basestack.mongoSecret,
-    graphqlSecret: basestack.graphqlSecret,
     botfrontVersion: softwareVersions.botfront,
     botfrontAdminEmail,
     projectCreationVersion,
@@ -68,7 +66,6 @@ test('Create rasa-stack with one bot', () => {
     baseVpc: basestack.baseVpc,
     botfrontService: bfstack.botfrontService,
     rasaBots: ecrRepos,
-    graphqlSecret: basestack.graphqlSecret,
     actionsVersion: actionsTag,
     rasaVersion: rasaTag
   });
@@ -117,8 +114,6 @@ test('Create rasa-stack with two bots', () => {
     baseCluster: basestack.baseCluster,
     baseLoadbalancer: basestack.baseLoadBalancer,
     baseVpc: basestack.baseVpc,
-    mongoSecret: basestack.mongoSecret,
-    graphqlSecret: basestack.graphqlSecret,
     botfrontVersion: softwareVersions.botfront,
     botfrontAdminEmail,
     projectCreationVersion,
@@ -138,7 +133,6 @@ test('Create rasa-stack with two bots', () => {
     baseVpc: basestack.baseVpc,
     botfrontService: bfstack.botfrontService,
     rasaBots: ecrRepos,
-    graphqlSecret: basestack.graphqlSecret,
     actionsVersion: actionsTag,
     rasaVersion: rasaTag
   });

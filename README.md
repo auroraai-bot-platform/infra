@@ -10,8 +10,9 @@
 
 ### Creating an environment
 - Allow NAT gateway's elastic IP to mongodb (Does not stop deployment)
-- Populate secret of the environment in secretsmanager (Does not stop deployment)
-export function createEnvironment(app: cdk.App, config: EnvironmentConfiguration) {
+- Populate two secrets for the environment in secretsmanager (Does not stop deployment)
+  - `<envName>/mongo/connectionstring` connection string to mongodb (export from atlas)
+  - `<envName>/graphql/apikey` apikey for rasa connection (just letters and numbers)
 - Create a new environment with the `createEnvironment` function and run `cdk deploy <envName>-*`
 ### Destroying an environment
 - Empty and delete ECR repos manually if you destroy environments (After environment destruction)

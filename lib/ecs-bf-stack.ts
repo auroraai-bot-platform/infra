@@ -30,9 +30,7 @@ interface EcsBfProps extends BaseStackProps {
   projectCreationVersion: string,
   sourceBucketName: string,
   rasaBots: RasaBot[],
-  botfrontAdminEmail: string,
-  graphqlSecret: secrets.ISecret,
-  mongoSecret: secrets.ISecret
+  botfrontAdminEmail: string
 }
 
 const restApiPort = 3030;
@@ -47,6 +45,9 @@ export class EcsBfStack extends Stack {
 
     const prefix = createPrefix(props.envName, this.constructor.name);
     const bfrepo = ecr.Repository.fromRepositoryName(this, `${prefix}repository-botfront`, props.defaultRepositories.botfrontRepository);
+
+    const mongoSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}botfront-mongo-secret`, `${props.envName}/mongo/connectionstring`);
+    const graphqlSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}botfront-graphql-secret`, `${props.envName}/graphql/apikey`);
 
     const fileBucket = new s3.Bucket(this, `${prefix}file-bucket`, { bucketName: `${prefix}file-bucket`, publicReadAccess: true });
     const modelBucket = new s3.Bucket(this, `${prefix}model-bucket`, { bucketName: `${prefix}model-bucket` });
@@ -119,8 +120,8 @@ export class EcsBfStack extends Stack {
         ADMIN_USER: props.botfrontAdminEmail,
       },
       secrets: {
-        MONGO_URL: ecs.Secret.fromSecretsManager(props.mongoSecret),
-        API_KEY: ecs.Secret.fromSecretsManager(props.graphqlSecret),
+        MONGO_URL: ecs.Secret.fromSecretsManager(mongoSecret),
+        API_KEY: ecs.Secret.fromSecretsManager(graphqlSecret),
         ADMIN_PASSWORD: ecs.Secret.fromSecretsManager(botfrontAdminSecret)
       },
       logging: ecs.LogDriver.awsLogs({
@@ -177,7 +178,7 @@ export class EcsBfStack extends Stack {
     const botfrontInternalUrl = `http://${this.botfrontService.cloudMapService?.serviceName}.${props.baseCluster.defaultCloudMapNamespace.namespaceName}:${restApiPort}`;
 
     const lambdaRequest: LambdaRequest = {
-      tokenSecretArn: props.graphqlSecret.secretArn,
+      tokenSecretArn: graphqlSecret.secretArn,
       botfrontBaseUrl: botfrontInternalUrl,
       timestamp: Date.now(),
       projects: props?.rasaBots?.map<Project>((bot) => {
@@ -215,7 +216,7 @@ export class EcsBfStack extends Stack {
       logRetention: logs.RetentionDays.ONE_DAY,
     });
 
-    props.graphqlSecret.grantRead(projectCreationLambda);
+    graphqlSecret.grantRead(projectCreationLambda);
 
     const lambdaTrigger = new customResources.AwsCustomResource(this, `${prefix}project-creation-lambda-trigger`, {
       functionName: `${props.envName}-botfront-project-creation-trigger`,

@@ -40,7 +40,6 @@ test('Create base-stack with one bot', () => {
   template.resourceCountIs('AWS::Route53::RecordSet', 1);
   template.resourceCountIs('AWS::EC2::VPCEndpoint', 5);
   template.resourceCountIs('AWS::EC2::SecurityGroup', 5);
-  template.resourceCountIs('AWS::SecretsManager::Secret', 2);
 });
 
 test('Create base-stack with two bots', () => {
@@ -74,5 +73,4 @@ test('Create base-stack with two bots', () => {
   template.resourceCountIs('AWS::Route53::RecordSet', 1);
   template.resourceCountIs('AWS::EC2::VPCEndpoint', 5);
   template.resourceCountIs('AWS::EC2::SecurityGroup', 5);
-  template.resourceCountIs('AWS::SecretsManager::Secret', 2);
 });
