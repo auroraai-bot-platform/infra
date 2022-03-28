@@ -31,7 +31,7 @@ export class EcsRasaStack extends Stack {
     super(scope, id, props);
     const prefix = createPrefix(props.envName, this.constructor.name);
     const graphqlSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}botfront-graphql-secret`, `${props.envName}/graphql/apikey`);
-
+    const actionsSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}actions-ptv-secret`, `${props.envName}/actions/servicerecommender`)
     for (const rasaBot of props.rasaBots) {
 
       // Rasa #1
@@ -141,6 +141,10 @@ export class EcsRasaStack extends Stack {
         environment: {
           PORT: rasaBot.actionsPort.toString(),
           BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`
+        },
+        secrets: {
+          AURORA_API_ENDPOINT: ecs.Secret.fromSecretsManager(actionsSecret, 'API_ENDPOINT'),
+          AURORA_API_KEY: ecs.Secret.fromSecretsManager(actionsSecret, 'API_KEY')
         },
         logging: ecs.LogDriver.awsLogs({
           streamPrefix: `${prefix}actions-${rasaBot.customerName}`,
@@ -276,6 +280,10 @@ export class EcsRasaStack extends Stack {
             environment: {
               PORT: rasaBot.actionsPortProd.toString(),
               BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`
+            },
+            secrets: {
+              AURORA_API_ENDPOINT: ecs.Secret.fromSecretsManager(actionsSecret, 'API_ENDPOINT'),
+              AURORA_API_KEY: ecs.Secret.fromSecretsManager(actionsSecret, 'API_KEY')
             },
             logging: ecs.LogDriver.awsLogs({
               streamPrefix: `${prefix}actions-prod-${rasaBot.customerName}`,

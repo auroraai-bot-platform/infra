@@ -111,7 +111,7 @@ const demoSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
   botfront: '3.0.9',
   rasa: '3.0.2',
-  actions: '2.8.3-hyte',
+  actions: 'test-recommender',
   projectCreation: '1.0.0'
 };
 
