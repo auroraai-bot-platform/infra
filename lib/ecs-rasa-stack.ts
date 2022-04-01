@@ -144,7 +144,8 @@ export class EcsRasaStack extends Stack {
         },
         secrets: {
           AURORA_API_ENDPOINT: ecs.Secret.fromSecretsManager(actionsSecret, 'API_ENDPOINT'),
-          AURORA_API_KEY: ecs.Secret.fromSecretsManager(actionsSecret, 'API_KEY')
+          AURORA_API_KEY: ecs.Secret.fromSecretsManager(actionsSecret, 'API_KEY'),
+          AURORA_CLIENT_ID: ecs.Secret.fromSecretsManager(actionsSecret, 'API_CLIENT_ID')
         },
         logging: ecs.LogDriver.awsLogs({
           streamPrefix: `${prefix}actions-${rasaBot.customerName}`,
@@ -283,7 +284,8 @@ export class EcsRasaStack extends Stack {
             },
             secrets: {
               AURORA_API_ENDPOINT: ecs.Secret.fromSecretsManager(actionsSecret, 'API_ENDPOINT'),
-              AURORA_API_KEY: ecs.Secret.fromSecretsManager(actionsSecret, 'API_KEY')
+              AURORA_API_KEY: ecs.Secret.fromSecretsManager(actionsSecret, 'API_KEY'),
+              AURORA_CLIENT_ID: ecs.Secret.fromSecretsManager(actionsSecret, 'API_CLIENT_ID')
             },
             logging: ecs.LogDriver.awsLogs({
               streamPrefix: `${prefix}actions-prod-${rasaBot.customerName}`,
