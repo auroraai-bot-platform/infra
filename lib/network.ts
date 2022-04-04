@@ -6,8 +6,7 @@ import {
   aws_elasticloadbalancingv2 as elbv2,
   aws_route53 as route53,
   aws_route53_targets as route53t,
-  aws_certificatemanager as acm,
-  aws_secretsmanager as secrets
+  aws_certificatemanager as acm
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
@@ -68,12 +67,12 @@ export class Network extends Construct {
 
     const actionsBaseRepo = ecr.Repository.fromRepositoryName(this, `${prefix}ecr-actions`, props.defaultRepositories.actionsRepository)
     for (const ecrRepoConfig of props.ecrRepos) {
-      const actionsRepo = new ecr.Repository(this, `${prefix}ecr-repository-actions${ecrRepoConfig.isProd? '-prod': ''}-${ecrRepoConfig.customerName}`, {
+      const actionsRepo = new ecr.Repository(this, `${prefix}ecr-repository-actions-${ecrRepoConfig.customerName}`, {
         imageScanOnPush: true,
         repositoryName: `${props.envName}-actions-${ecrRepoConfig.customerName}`
       });
 
-      new ecrdeploy.ECRDeployment(this, `${prefix}deploy-actions-image${ecrRepoConfig.isProd? '-prod': ''}-${ecrRepoConfig.customerName}`, {
+      new ecrdeploy.ECRDeployment(this, `${prefix}deploy-actions-image-${ecrRepoConfig.customerName}`, {
         src: new ecrdeploy.DockerImageName(`${actionsBaseRepo.repositoryUri}:${props.actionsTag}`),
         dest: new ecrdeploy.DockerImageName(`${actionsRepo.repositoryUri}:${props.actionsTag}`),
       });

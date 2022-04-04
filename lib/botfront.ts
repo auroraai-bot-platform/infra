@@ -23,16 +23,16 @@ import { createPrefix } from './utilities';
 interface BotfrontProps {
   envName: string,
   defaultRepositories: DefaultRepositories;
-  baseCluster: ecs.ICluster,
-  baseVpc: ec2.IVpc,
-  baseLoadbalancer: elbv2.IApplicationLoadBalancer,
-  baseCertificate: acm.ICertificate,
-  domain: string,
-  botfrontVersion: string,
-  projectCreationVersion: string,
-  sourceBucketName: string,
-  rasaBots: RasaBot[],
-  botfrontAdminEmail: string
+  baseCluster: ecs.ICluster;
+  baseVpc: ec2.IVpc;
+  baseLoadbalancer: elbv2.IApplicationLoadBalancer;
+  baseCertificate: acm.ICertificate;
+  domain: string;
+  botfrontVersion: string;
+  projectCreationVersion: string;
+  sourceBucketName: string;
+  rasaBots: RasaBot[];
+  botfrontAdminEmail: string;
 }
 
 const restApiPort = 3030;
@@ -48,11 +48,11 @@ export class Botfront extends Construct {
     const prefix = createPrefix(props.envName, this.constructor.name);
     const bfrepo = ecr.Repository.fromRepositoryName(this, `${prefix}repository-botfront`, props.defaultRepositories.botfrontRepository);
 
-    const fileBucket = new s3.Bucket(this, `${prefix}file-bucket`, { bucketName: `${prefix}file-bucket`, publicReadAccess: true, removalPolicy: RemovalPolicy.DESTROY, autoDeleteObjects: true });
-    const modelBucket = new s3.Bucket(this, `${prefix}model-bucket`, { bucketName: `${prefix}model-bucket`, removalPolicy: RemovalPolicy.DESTROY, autoDeleteObjects: true });
-
     const mongoSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}botfront-mongo-secret`, `${props.envName}/mongo/connectionstring`);
     const graphqlSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}botfront-graphql-secret`, `${props.envName}/graphql/apikey`);
+
+    const fileBucket = new s3.Bucket(this, `${prefix}file-bucket`, { bucketName: `${prefix}file-bucket`, publicReadAccess: true });
+    const modelBucket = new s3.Bucket(this, `${prefix}model-bucket`, { bucketName: `${prefix}model-bucket` });
 
     const botfrontWaitHandle = new cf.CfnWaitConditionHandle(this, `${prefix}botfront-waithandle`);
 
@@ -191,7 +191,7 @@ export class Botfront extends Construct {
           host: `http://rasa-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.rasaPort}`,
           baseUrl: `https://${props.envName}.${props.domain}:${bot.rasaPort}`,
           actionEndpoint: `http://actions-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}/webhook`,
-          hasProd: bot.isProd,
+          hasProd: bot.hasProd,
           prodBaseUrl: `https://${props.envName}.${props.domain}:${bot.rasaPort}`,
           prodActionEndpoint: `http://actions-${bot.customerName}.${props.baseCluster.defaultCloudMapNamespace?.namespaceName}:${bot.actionsPort}/webhook`,
         }

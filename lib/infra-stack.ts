@@ -4,6 +4,7 @@ import { Network } from '../lib/network';
 import { EnvironmentConfiguration } from '../types';
 import { Botfront } from './botfront';
 import { Rasa } from './rasa';
+import { ProdRasa } from './rasa-prod';
 import { Webchat } from './webchat';
 
 const validProjectNameRegExp = new RegExp('^[a-zA-Z0-9]+$');
@@ -25,7 +26,7 @@ export class InfraStack extends Stack {
       throw new Error(`Env: ${props.config.envName}. Cannot create environment because of colliding port configurations. ${JSON.stringify(props.config.rasaBots)}`);
     }
 
-    const allProjectIds = props.config.rasaBots.map(bot => bot.projectId + bot.isProd);
+    const allProjectIds = props.config.rasaBots.map(bot => bot.projectId + bot.hasProd);
     const unqiueProjectIdCount = new Set(allProjectIds).size;
     const hasProjectIdCollision = unqiueProjectIdCount !== allProjectIds.length;
 
@@ -33,7 +34,7 @@ export class InfraStack extends Stack {
       throw new Error(`Env: ${props.config.envName}. Cannot create environment because of colliding projectId configurations. ${JSON.stringify(props.config.rasaBots)}`);
     }
 
-    const allProjectNames = props.config.rasaBots.map(bot => bot.projectId + bot.isProd);
+    const allProjectNames = props.config.rasaBots.map(bot => bot.projectId + bot.hasProd);
     const unqiueProjectNameCount = new Set(allProjectNames).size;
     const hasProjectNameCollision = unqiueProjectNameCount !== allProjectNames.length;
 
@@ -71,27 +72,48 @@ export class InfraStack extends Stack {
       botfrontAdminEmail: props.config.botfrontAdminEmail
     });
 
-    props.config.rasaBots.map( rasaBot => 
-      new Rasa(this,  `${rasaBot.customerName}${rasaBot.isProd? '-prod': ''}-rasa`, {
-        defaultRepositories: props.config.defaultRepositories,
-        envName: props.config.envName,
-        baseCluster: network.baseCluster,
-        baseVpc: network.baseVpc,
-        baseLoadbalancer: network.baseLoadBalancer,
-        baseCertificate: network.baseCertificate,
-        botfrontService: botfront.botfrontService,
-        rasaVersion: props.config.softwareVersions.rasa,
-        actionsVersion: props.config.softwareVersions.actions,
-        actionsPort: rasaBot.actionsPort,
-        customerName: rasaBot.customerName,
-        isProd: rasaBot.isProd,
-        projectId: rasaBot.projectId,
-        rasaPort: rasaBot.rasaPort
-      })
+    props.config.rasaBots.map( rasaBot => {
+      if (rasaBot.hasProd) {
+        new ProdRasa(this,  `${rasaBot.customerName}-rasa`, {
+          defaultRepositories: props.config.defaultRepositories,
+          envName: props.config.envName,
+          baseCluster: network.baseCluster,
+          baseVpc: network.baseVpc,
+          baseLoadbalancer: network.baseLoadBalancer,
+          baseCertificate: network.baseCertificate,
+          botfrontService: botfront.botfrontService,
+          rasaVersion: props.config.softwareVersions.rasa,
+          actionsVersion: props.config.softwareVersions.actions,
+          actionsPort: rasaBot.actionsPort,
+          customerName: rasaBot.customerName,
+          projectId: rasaBot.projectId,
+          rasaPort: rasaBot.rasaPort,
+          rasaPortProd: rasaBot.rasaPortProd,
+          actionsPortProd: rasaBot.actionsPortProd
+        })
+      } else {
+        new Rasa(this,  `${rasaBot.customerName}-rasa`, {
+          defaultRepositories: props.config.defaultRepositories,
+          envName: props.config.envName,
+          baseCluster: network.baseCluster,
+          baseVpc: network.baseVpc,
+          baseLoadbalancer: network.baseLoadBalancer,
+          baseCertificate: network.baseCertificate,
+          botfrontService: botfront.botfrontService,
+          rasaVersion: props.config.softwareVersions.rasa,
+          actionsVersion: props.config.softwareVersions.actions,
+          actionsPort: rasaBot.actionsPort,
+          customerName: rasaBot.customerName,
+          projectId: rasaBot.projectId,
+          rasaPort: rasaBot.rasaPort
+        })
+      }
+    
+    }
     )
 
     props.config.rasaBots.map( rasaBot => 
-    new Webchat(this, `${rasaBot.customerName}${rasaBot.isProd? '-prod': ''}-webchat`, {
+    new Webchat(this, `${rasaBot.customerName}-webchat`, {
       envName: props.config.envName,
       rasaBots: props.config.rasaBots,
       domain: props.config.domain,

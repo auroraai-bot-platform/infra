@@ -15,7 +15,7 @@ import { DefaultRepositories } from '../types';
 import { createPrefix } from './utilities';
 
 interface RasaProps {
-  envName: string,
+  envName: string;
   defaultRepositories: DefaultRepositories;
   baseCluster: ecs.ICluster;
   baseVpc: ec2.IVpc;
@@ -28,20 +28,23 @@ interface RasaProps {
   rasaPort: number;
   actionsPort: number;
   projectId: string;
+  rasaPortProd: number | undefined;
+  actionsPortProd: number | undefined;
 }
 
-export class Rasa extends Construct {
+export class ProdRasa extends Construct {
   constructor(scope: Construct, id: string, props: RasaProps) {
     super(scope, id);
     const prefix = createPrefix(props.envName, this.constructor.name);
-    const graphqlSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}rasa-graphql-secret`, `${props.envName}/graphql/apikey`);
+    const graphqlSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}botfront-graphql-secret`, `${props.envName}/graphql/apikey`);
+    const actionsSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}actions-ptv-secret`, `${props.envName}/actions/servicerecommender`);
 
       // Rasa #1
       const rasarepo = ecr.Repository.fromRepositoryName(this, `${prefix}repository-rasa-${props.customerName}`, props.defaultRepositories.rasaBotRepository);
 
       const rasatd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-${props.customerName}`, {
         cpu: '2048',
-        memoryMiB:'4096',
+        memoryMiB: '4096',
         compatibility: ecs.Compatibility.FARGATE
       });
 
@@ -49,7 +52,7 @@ export class Rasa extends Construct {
         name: `rasavolume-${props.customerName}`,
       });
 
-      const rasacontainer = rasatd.addContainer(`${prefix}container-rasa-${props.customerName}`, {
+      rasatd.addContainer(`${prefix}container-rasa-${props.customerName}`, {
         image: ecs.ContainerImage.fromEcrRepository(rasarepo, props.rasaVersion),
         containerName: `rasa-${props.customerName}`,
         portMappings: [{
@@ -69,9 +72,7 @@ export class Rasa extends Construct {
           streamPrefix: `${prefix}container-rasa-${props.customerName}`,
           logRetention: logs.RetentionDays.ONE_DAY
         })
-      });
-
-      rasacontainer.addMountPoints(
+      }).addMountPoints(
         {
           containerPath: '/app/models',
           sourceVolume: `rasavolume-${props.customerName}`,
@@ -146,6 +147,11 @@ export class Rasa extends Construct {
           PORT: props.actionsPort.toString(),
           BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`
         },
+        secrets: {
+          AURORA_API_ENDPOINT: ecs.Secret.fromSecretsManager(actionsSecret, 'API_ENDPOINT'),
+          AURORA_API_KEY: ecs.Secret.fromSecretsManager(actionsSecret, 'API_KEY'),
+          AURORA_API_CLIENT_ID: ecs.Secret.fromSecretsManager(actionsSecret, 'API_CLIENT_ID')
+        },
         logging: ecs.LogDriver.awsLogs({
           streamPrefix: `${prefix}actions-${props.customerName}`,
           logRetention: logs.RetentionDays.ONE_DAY
@@ -188,5 +194,123 @@ export class Rasa extends Construct {
 
       actionsservice.connections.allowFrom(props.botfrontService, ec2.Port.tcp(props.actionsPort));
       actionsservice.connections.allowFrom(rasaservice, ec2.Port.tcp(props.actionsPort));
+
+      // Rasa #2
+      if (props.rasaPortProd != undefined) {
+        const modelBucket = s3.Bucket.fromBucketName(this, `${prefix}model-bucket-${props.customerName}`, `${prefix}model-bucket`)
+        const rasaProdtd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-prod-${props.customerName}`, {
+          cpu: '1024',
+          memoryMiB: '2048',
+          compatibility: ecs.Compatibility.FARGATE
+        });
+  
+        modelBucket.grantRead(rasaProdtd.taskRole, `model-${props.projectId}.tar.gz`);
+  
+        rasaProdtd.addContainer(`${prefix}container-rasa-prod-${props.customerName}`, {
+          image: ecs.ContainerImage.fromEcrRepository(rasarepo, props.rasaVersion),
+          containerName: `rasa-prod-${props.customerName}`,
+          portMappings: [{
+            hostPort: props.rasaPortProd,
+            containerPort: props.rasaPortProd
+          }],
+          command: ["rasa", "run", "--enable-api", "--debug",  "--port", props.rasaPortProd.toString(), "--auth-token", graphqlSecret.secretValue.toString()],
+          environment: {
+            BF_PROJECT_ID: props.projectId,
+            PORT: props.rasaPort.toString(),
+            BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`,
+            BUCKET_NAME: modelBucket.bucketName
+          },
+          secrets: {
+            API_KEY: ecs.Secret.fromSecretsManager(graphqlSecret)
+          },
+          logging: ecs.LogDriver.awsLogs({
+            streamPrefix: `${prefix}container-rasa-prod-${props.customerName}`,
+            logRetention: logs.RetentionDays.ONE_DAY
+          })
+        });
+  
+        const rasaprodservice = new ecs.FargateService(this, `${prefix}service-rasa-prod-${props.customerName}`, {
+          cluster: props.baseCluster,
+          taskDefinition: rasaProdtd,
+          cloudMapOptions: {
+            name: `rasa-prod-${props.customerName}`
+          },
+          serviceName: `${props.envName}-service-rasa-prod-${props.customerName}`
+        });
+  
+        const rasaprodlistener = new elbv2.ApplicationListener(this, `${prefix}listener-rasa-prod-${props.customerName}`, {
+          loadBalancer: props.baseLoadbalancer,
+          port: props.rasaPortProd,
+          protocol: elbv2.ApplicationProtocol.HTTPS,
+          certificates: [props.baseCertificate]
+        });
+  
+        const rasaprodtg = new elbv2.ApplicationTargetGroup(this, `${prefix}targetgroup-rasa-prod-${props.customerName}`, {
+          targets: [rasaprodservice],
+          protocol: elbv2.ApplicationProtocol.HTTP,
+          vpc: props.baseVpc,
+          port: props.rasaPortProd
+        });
+  
+        rasaprodlistener.addTargetGroups(`${prefix}targetgroupadd-rasa-prod-${props.customerName}`, {
+          targetGroups: [rasaprodtg],
+          priority: 1,
+          conditions: [
+            elbv2.ListenerCondition.pathPatterns(['/socket.io', '/socket.io/*'])
+          ]
+        });
+  
+        rasaprodlistener.addAction(`${prefix}blockdefault-rasa-prod-${props.customerName}`, {
+          action: elbv2.ListenerAction.fixedResponse(403)
+        });
+  
+        rasaprodservice.connections.allowFrom(props.baseLoadbalancer, ec2.Port.tcp(props.rasaPortProd));
+        rasaprodservice.connections.allowFrom(props.botfrontService, ec2.Port.tcp(props.rasaPortProd));
+        rasaprodservice.connections.allowFrom(props.botfrontService, ec2.Port.tcp(props.actionsPort));
+
+        if(props.actionsPortProd != undefined) {
+          const actionsprodtd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-actions-prod-${props.customerName}`, {
+            cpu: '256',
+            memoryMiB: '512',
+            compatibility: ecs.Compatibility.FARGATE
+          });
+    
+          actionsprodtd.addContainer(`${prefix}actions-prod`, {
+            image: ecs.ContainerImage.fromEcrRepository(actionsrepo, props.actionsVersion),
+            containerName: `actions-prod-${props.customerName}`,
+            portMappings: [{
+              hostPort: props.actionsPortProd,
+              containerPort: props.actionsPortProd
+            }],
+            command: ["start", "--actions", "actions", "--debug", "--port", props.actionsPortProd.toString()],
+            environment: {
+              PORT: props.actionsPortProd.toString(),
+              BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`
+            },
+            secrets: {
+              AURORA_API_ENDPOINT: ecs.Secret.fromSecretsManager(actionsSecret, 'API_ENDPOINT'),
+              AURORA_API_KEY: ecs.Secret.fromSecretsManager(actionsSecret, 'API_KEY'),
+              AURORA_API_CLIENT_ID: ecs.Secret.fromSecretsManager(actionsSecret, 'API_CLIENT_ID')
+            },
+            logging: ecs.LogDriver.awsLogs({
+              streamPrefix: `${prefix}actions-prod-${props.customerName}`,
+              logRetention: logs.RetentionDays.ONE_DAY
+            })
+          });
+    
+          const actionsprodservice = new ecs.FargateService(this, `${prefix}service-actions-prod-${props.customerName}`, {
+            cluster: props.baseCluster,
+            taskDefinition: actionsprodtd,
+            cloudMapOptions: {
+              name: `actions-prod-${props.customerName}`
+            },
+            serviceName: `${props.envName}-service-actions-prod-${props.customerName}`
+          });
+
+          actionsprodservice.connections.allowFrom(rasaprodservice, ec2.Port.tcp(props.actionsPortProd));
+        } else {
+          actionsservice.connections.allowFrom(rasaprodservice, ec2.Port.tcp(props.actionsPort));
+        }
+      }
   }
 }

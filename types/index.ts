@@ -4,7 +4,9 @@ export interface RasaBot {
   projectId: string;
   projectName: string;
   rasaPort: number;
-  isProd: boolean;
+  hasProd?: boolean;
+  rasaPortProd?: number;
+  actionsPortProd?: number;
   additionalConfig?: {
     intents: {
       [intentPath: string]: string;
