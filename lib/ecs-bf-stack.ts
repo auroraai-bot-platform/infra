@@ -21,16 +21,16 @@ import { createPrefix } from './utilities';
 
 interface EcsBfProps extends BaseStackProps {
   defaultRepositories: DefaultRepositories;
-  baseCluster: ecs.ICluster,
-  baseVpc: ec2.IVpc,
-  baseLoadbalancer: elbv2.IApplicationLoadBalancer,
-  baseCertificate: acm.ICertificate,
-  domain: string,
-  botfrontVersion: string,
-  projectCreationVersion: string,
-  sourceBucketName: string,
-  rasaBots: RasaBot[],
-  botfrontAdminEmail: string
+  baseCluster: ecs.ICluster;
+  baseVpc: ec2.IVpc;
+  baseLoadbalancer: elbv2.IApplicationLoadBalancer;
+  baseCertificate: acm.ICertificate;
+  domain: string;
+  botfrontVersion: string;
+  projectCreationVersion: string;
+  sourceBucketName: string;
+  rasaBots: RasaBot[];
+  botfrontAdminEmail: string;
 }
 
 const restApiPort = 3030;

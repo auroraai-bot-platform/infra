@@ -109,8 +109,8 @@ const demoSubDomain = `${demoEnvName}.${domain}`;
 
 const demoSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '3.0.9',
-  rasa: '3.0.2',
+  botfront: '3.1.1',
+  rasa: '3.0.3',
   actions: 'test-recommender',
   projectCreation: '1.0.0'
 };

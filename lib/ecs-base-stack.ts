@@ -16,11 +16,11 @@ import { createPrefix } from './utilities';
 import { BaseStackProps, DefaultRepositories, RasaBot } from '../types';
 
 interface EcsBaseProps extends BaseStackProps {
-  defaultRepositories: DefaultRepositories,
-  domain: string,
-  subDomain: string,
-  ecrRepos: RasaBot[],
-  actionsTag: string
+  defaultRepositories: DefaultRepositories;
+  domain: string;
+  subDomain: string;
+  ecrRepos: RasaBot[];
+  actionsTag: string;
 }
 
 export class EcsBaseStack extends Stack {

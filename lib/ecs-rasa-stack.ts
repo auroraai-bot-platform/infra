@@ -16,14 +16,14 @@ import { createPrefix } from './utilities';
 
 interface EcsRasaProps extends BaseStackProps {
   defaultRepositories: DefaultRepositories;
-  baseCluster: ecs.ICluster,
-  baseVpc: ec2.IVpc,
-  baseLoadbalancer: elbv2.IApplicationLoadBalancer,
-  baseCertificate: acm.ICertificate,
-  botfrontService: ecs.FargateService,
-  rasaBots: RasaBot[],
-  rasaVersion: string,
-  actionsVersion: string
+  baseCluster: ecs.ICluster;
+  baseVpc: ec2.IVpc;
+  baseLoadbalancer: elbv2.IApplicationLoadBalancer;
+  baseCertificate: acm.ICertificate;
+  botfrontService: ecs.FargateService;
+  rasaBots: RasaBot[];
+  rasaVersion: string;
+  actionsVersion: string;
 }
 
 export class EcsRasaStack extends Stack {
