@@ -1,5 +1,4 @@
 import {
-  RemovalPolicy,
   aws_ec2 as ec2,
   aws_ecr as ecr,
   aws_ecs as ecs,

@@ -108,9 +108,7 @@ export class InfraStack extends Stack {
           rasaPort: rasaBot.rasaPort
         })
       }
-    
-    }
-    )
+    });
 
     props.config.rasaBots.map( rasaBot => 
     new Webchat(this, `${rasaBot.customerName}-webchat`, {
@@ -124,7 +122,6 @@ export class InfraStack extends Stack {
       customerName: rasaBot.customerName,
       projectName: rasaBot.projectName,
       rasaPort: rasaBot.rasaPort
-    })
-    )
+    }))
   }
 }

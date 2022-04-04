@@ -13,7 +13,6 @@ import {
   custom_resources as customResources,
   aws_iam as iam,
   aws_cloudformation as cf,
-  RemovalPolicy
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
