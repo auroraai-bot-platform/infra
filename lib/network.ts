@@ -5,7 +5,8 @@ import {
   aws_elasticloadbalancingv2 as elbv2,
   aws_route53 as route53,
   aws_route53_targets as route53t,
-  aws_certificatemanager as acm
+  aws_certificatemanager as acm,
+  Duration
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
@@ -26,7 +27,7 @@ export interface NetworkProps {
 export class Network extends Construct {
   public readonly baseVpc: ec2.Vpc;
   public readonly baseCluster: ecs.Cluster;
-  public readonly baseLoadBalancer: elbv2.ApplicationLoadBalancer;
+  public readonly baseTargetGroup: elbv2.ApplicationTargetGroup[];
   public readonly baseCertificate: acm.Certificate;
 
   constructor(scope: Construct, id: string, props: NetworkProps) {
@@ -61,6 +62,7 @@ export class Network extends Construct {
     const zone = route53.HostedZone.fromLookup(this, `${prefix}route53-zone`, {domainName: props.domain});
     this.baseCertificate = new acm.Certificate(this, `${prefix}acm-certificate`, {
       domainName: props.subDomain,
+      subjectAlternativeNames: [`*.${props.subDomain}`],
       validation: acm.CertificateValidation.fromDns(zone)
     });
 
@@ -87,14 +89,30 @@ export class Network extends Construct {
       }
     });
 
-    this.baseLoadBalancer = new elbv2.ApplicationLoadBalancer(this, `${prefix}alb-base`, {
+    const loadBalancer = new elbv2.ApplicationLoadBalancer(this, `${prefix}alb-base`, {
       vpc: this.baseVpc,
       internetFacing: true
     });
 
+    this.baseTargetGroup[0] = new elbv2.ApplicationTargetGroup(this,  `${prefix}tg-base`, {
+      port: 443,
+      vpc: this.baseVpc,
+      deregistrationDelay: Duration.seconds(30)
+    });
+
+    for (const rasaBot of props.ecrRepos) {
+      this.baseTargetGroup.push()
+    }
+
+    loadBalancer.addListener(`${prefix}alb-listener-base`, {
+      port: 443,
+      defaultTargetGroups: [this.baseTargetGroup[0]],
+      certificates: [this.baseCertificate]
+    });
+
     new route53.ARecord(this, `${prefix}route53-record-a`, {
       zone,
-      target: route53.RecordTarget.fromAlias(new route53t.LoadBalancerTarget(this.baseLoadBalancer)),
+      target: route53.RecordTarget.fromAlias(new route53t.LoadBalancerTarget(loadBalancer)),
       recordName: props.envName
     });
   }

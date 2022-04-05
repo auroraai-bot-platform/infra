@@ -20,7 +20,7 @@ let subDomain = `${envName}.${domain}`;
 
 const demoSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.7',
-  botfront: '3.0.9',
+  botfront: '3.1.2',
   rasa: '3.0.2',
   actions: '2.8.3-hyte',
   projectCreation: '1.0.0'
