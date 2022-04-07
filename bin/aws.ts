@@ -20,10 +20,10 @@ const defaultRepositories: DefaultRepositories = {
 };
 
 const customerSoftwareVersions: SoftwareVersions = {
-  frontend: '0.0.7',
-  botfront: '3.0.9',
+  frontend: '0.0.8-build1',
+  botfront: '3.1.2',
   rasa: '3.0.2',
-  actions: '2.1.2-hyte',
+  actions: 'test-recommender-2',
   projectCreation: '1.0.0'
 };
 
