@@ -22,12 +22,18 @@ export interface NetworkProps {
   subDomain: string;
   ecrRepos: RasaBot[];
   actionsTag: string;
+  ports: {
+    botfrontPort: number;
+    ducklingPort: number;
+    restApiPort: number;
+  }
 }
 
 export class Network extends Construct {
   public readonly baseVpc: ec2.Vpc;
   public readonly baseCluster: ecs.Cluster;
-  public readonly baseTargetGroup: elbv2.ApplicationTargetGroup[];
+  public readonly baseTargetGroups: elbv2.ApplicationTargetGroup[];
+  public readonly baseLoadBalancer: elbv2.ApplicationLoadBalancer;
   public readonly baseCertificate: acm.Certificate;
 
   constructor(scope: Construct, id: string, props: NetworkProps) {
@@ -89,30 +95,133 @@ export class Network extends Construct {
       }
     });
 
-    const loadBalancer = new elbv2.ApplicationLoadBalancer(this, `${prefix}alb-base`, {
+    this.baseLoadBalancer = new elbv2.ApplicationLoadBalancer(this, `${prefix}alb-base`, {
       vpc: this.baseVpc,
       internetFacing: true
     });
 
-    this.baseTargetGroup[0] = new elbv2.ApplicationTargetGroup(this,  `${prefix}tg-base`, {
-      port: 443,
-      vpc: this.baseVpc,
-      deregistrationDelay: Duration.seconds(30)
+    this.baseLoadBalancer.addRedirect({
     });
 
-    for (const rasaBot of props.ecrRepos) {
-      this.baseTargetGroup.push()
-    }
+    this.baseTargetGroups = [];
 
-    loadBalancer.addListener(`${prefix}alb-listener-base`, {
+    this.baseTargetGroups.push(new elbv2.ApplicationTargetGroup(this,  `${prefix}tg-base`, {
+      port: props.ports.botfrontPort,
+      vpc: this.baseVpc,
+      protocol: elbv2.ApplicationProtocol.HTTP,
+      deregistrationDelay: Duration.seconds(30),
+      targetType: elbv2.TargetType.IP,
+      healthCheck: {
+        path: '/',
+        healthyThresholdCount: 2,
+        interval: Duration.seconds(10),
+        timeout: Duration.seconds(5)
+      },
+      targetGroupName: 'tg-botfront'
+    }));
+
+    const httpslistener = this.baseLoadBalancer.addListener(`${prefix}alb-listener-https`, {
       port: 443,
-      defaultTargetGroups: [this.baseTargetGroup[0]],
+      defaultTargetGroups: [this.baseTargetGroups[0]],
       certificates: [this.baseCertificate]
     });
 
+    for (const rasaBot of props.ecrRepos) {
+      this.baseTargetGroups.push(new elbv2.ApplicationTargetGroup(this, `${prefix}tg-rasa-${rasaBot.customerName}`, {
+        protocol: elbv2.ApplicationProtocol.HTTP,
+        vpc: this.baseVpc,
+        port: rasaBot.rasaPort,
+        deregistrationDelay: Duration.seconds(30),
+        healthCheck: {
+          path: '/',
+          healthyThresholdCount: 2,
+          interval: Duration.seconds(10),
+          timeout: Duration.seconds(5)
+        },
+        targetType: elbv2.TargetType.IP,
+        targetGroupName: `tg-rasa-${rasaBot.customerName}`
+      }));
+      httpslistener.addTargetGroups(`${prefix}-tg-listener-rasa-${rasaBot.customerName}`, {
+        targetGroups: [this.baseTargetGroups[this.baseTargetGroups.length -1]],
+        conditions: [
+          elbv2.ListenerCondition.pathPatterns(['/rasa/socket.io', '/rasa/socket.io/*'])
+        ],
+        priority: this.baseTargetGroups.length * 10
+      });
+      this.baseTargetGroups.push(new elbv2.ApplicationTargetGroup(this, `${prefix}tg-actions-${rasaBot.customerName}`, {
+        protocol: elbv2.ApplicationProtocol.HTTP,
+        vpc: this.baseVpc,
+        port: rasaBot.actionsPort,
+        deregistrationDelay: Duration.seconds(30),
+        healthCheck: {
+          path: '/actions',
+          healthyThresholdCount: 2,
+          interval: Duration.seconds(10),
+          timeout: Duration.seconds(5)
+        },
+        targetType: elbv2.TargetType.IP,
+        targetGroupName: `tg-actions-${rasaBot.customerName}`
+      }));
+      httpslistener.addTargetGroups(`${prefix}-tg-listener-actions-${rasaBot.customerName}`, {
+        targetGroups: [this.baseTargetGroups[this.baseTargetGroups.length -1]],
+        conditions: [
+          elbv2.ListenerCondition.pathPatterns(['/actions/webhook', '/actions/webhook/*'])
+        ],
+        priority: this.baseTargetGroups.length * 10
+      });
+      if (rasaBot.hasProd === true) {
+        if (rasaBot.rasaPortProd != undefined) {
+          this.baseTargetGroups.push(new elbv2.ApplicationTargetGroup(this, `${prefix}tg-rasa-prod-${rasaBot.customerName}`, {
+            protocol: elbv2.ApplicationProtocol.HTTP,
+            vpc: this.baseVpc,
+            port: rasaBot.rasaPortProd,
+            deregistrationDelay: Duration.seconds(30),
+            healthCheck: {
+              path: '/',
+              healthyThresholdCount: 2,
+              interval: Duration.seconds(10),
+              timeout: Duration.seconds(5)
+            },
+            targetType: elbv2.TargetType.IP,
+            targetGroupName: `tg-rasa-prod-${rasaBot.customerName}`
+          }));
+          httpslistener.addTargetGroups(`${prefix}-tg-listener-rasa-prod-${rasaBot.customerName}`, {
+            targetGroups: [this.baseTargetGroups[this.baseTargetGroups.length -1]],
+            conditions: [
+              elbv2.ListenerCondition.pathPatterns(['/rasa-prod/socket.io', '/rasa-prod/socket.io/*'])
+            ],
+            priority: this.baseTargetGroups.length * 10
+          });
+        }
+        if (rasaBot.actionsPortProd != undefined) {
+          this.baseTargetGroups.push(new elbv2.ApplicationTargetGroup(this, `${prefix}tg-actions-prod-${rasaBot.customerName}`, {
+            protocol: elbv2.ApplicationProtocol.HTTP,
+            vpc: this.baseVpc,
+            port: rasaBot.actionsPortProd,
+            deregistrationDelay: Duration.seconds(30),
+            healthCheck: {
+              path: '/actions',
+              healthyThresholdCount: 2,
+              interval: Duration.seconds(10),
+              timeout: Duration.seconds(5)
+            },
+            targetType: elbv2.TargetType.IP,
+            targetGroupName: `tg-actions-prod-${rasaBot.customerName}`
+          }));
+          httpslistener.addTargetGroups(`${prefix}-tg-listener-actions-prod-${rasaBot.customerName}`, {
+            targetGroups: [this.baseTargetGroups[this.baseTargetGroups.length -1]],
+            conditions: [
+              elbv2.ListenerCondition.pathPatterns(['/actions-prod/webhook', '/actions-prod/webhook/*'])
+            ],
+            priority: this.baseTargetGroups.length * 10
+          });
+        }
+      }
+    }
+
     new route53.ARecord(this, `${prefix}route53-record-a`, {
       zone,
-      target: route53.RecordTarget.fromAlias(new route53t.LoadBalancerTarget(loadBalancer)),
+      target: route53.RecordTarget.fromAlias(new route53t.LoadBalancerTarget(this.baseLoadBalancer)),
       recordName: props.envName
     });
   }

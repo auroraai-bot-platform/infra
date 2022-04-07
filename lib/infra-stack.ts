@@ -54,7 +54,8 @@ export class InfraStack extends Stack {
       ecrRepos: props.config.rasaBots,
       subDomain: props.config.subDomain,
       domain: props.config.domain,
-      actionsTag: props.config.softwareVersions.actions
+      actionsTag: props.config.softwareVersions.actions,
+      ports: props.config.ports
     });
 
     const botfront = new Botfront(this, `${props.config.envName}-botfront`, {
@@ -63,24 +64,27 @@ export class InfraStack extends Stack {
       baseCluster: network.baseCluster,
       baseCertificate: network.baseCertificate,
       baseLoadbalancer: network.baseLoadBalancer,
+      baseTargetGroups: network.baseTargetGroups,
       baseVpc: network.baseVpc,
       domain: props.config.domain,
       botfrontVersion: props.config.softwareVersions.botfront,
       projectCreationVersion: props.config.softwareVersions.projectCreation,
       sourceBucketName: props.config.sourceBucketName,
       rasaBots: props.config.rasaBots,
-      botfrontAdminEmail: props.config.botfrontAdminEmail
+      botfrontAdminEmail: props.config.botfrontAdminEmail,
+      ports: props.config.ports
     });
 
     props.config.rasaBots.map( rasaBot => {
       if (rasaBot.hasProd) {
-        new ProdRasa(this,  `${rasaBot.customerName}-rasa`, {
+        new ProdRasa(this,  `${rasaBot.customerName}-prod-rasa`, {
           defaultRepositories: props.config.defaultRepositories,
           envName: props.config.envName,
           baseCluster: network.baseCluster,
           baseVpc: network.baseVpc,
           baseLoadbalancer: network.baseLoadBalancer,
           baseCertificate: network.baseCertificate,
+          baseTargetGroups: network.baseTargetGroups,
           botfrontService: botfront.botfrontService,
           rasaVersion: props.config.softwareVersions.rasa,
           actionsVersion: props.config.softwareVersions.actions,
@@ -89,7 +93,8 @@ export class InfraStack extends Stack {
           projectId: rasaBot.projectId,
           rasaPort: rasaBot.rasaPort,
           rasaPortProd: rasaBot.rasaPortProd,
-          actionsPortProd: rasaBot.actionsPortProd
+          actionsPortProd: rasaBot.actionsPortProd,
+          botfrontPort: props.config.ports.botfrontPort
         })
       } else {
         new Rasa(this,  `${rasaBot.customerName}-rasa`, {
@@ -99,13 +104,15 @@ export class InfraStack extends Stack {
           baseVpc: network.baseVpc,
           baseLoadbalancer: network.baseLoadBalancer,
           baseCertificate: network.baseCertificate,
+          baseTargetGroups: network.baseTargetGroups,
           botfrontService: botfront.botfrontService,
           rasaVersion: props.config.softwareVersions.rasa,
           actionsVersion: props.config.softwareVersions.actions,
           actionsPort: rasaBot.actionsPort,
           customerName: rasaBot.customerName,
           projectId: rasaBot.projectId,
-          rasaPort: rasaBot.rasaPort
+          rasaPort: rasaBot.rasaPort,
+          botfrontPort: props.config.ports.botfrontPort
         })
       }
     });

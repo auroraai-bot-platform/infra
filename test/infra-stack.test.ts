@@ -1,7 +1,7 @@
 import { Template } from 'aws-cdk-lib/assertions';
 import { App } from 'aws-cdk-lib';
 import { InfraStack } from '../lib/infra-stack';
-import { RasaBot, EnvironmentConfiguration } from '../types';
+import { EnvironmentConfiguration } from '../types';
 import { defaultRepositories, softwareVersions } from './fixtures';
 
 let config: EnvironmentConfiguration = {
@@ -16,7 +16,12 @@ let config: EnvironmentConfiguration = {
   rasaBots: [{rasaPort: 1, actionsPort: 2, projectId: 'veryrealid', customerName: 'veryrealcustomer', projectName: 'veryrealcustomer', hasProd: false}],
   softwareVersions,
   sourceBucketName: 'test',
-  subDomain: 'test'
+  subDomain: 'test',
+  ports: {
+    botfrontPort: 8888,
+    ducklingPort: 8000,
+    restApiPort: 3030
+  }
 };
 
 test('Create infra with one bot', () => {
@@ -48,7 +53,7 @@ test('Create infra with one bot', () => {
   template.resourceCountIs('AWS::IAM::Policy', 11);
   template.resourceCountIs('AWS::ECS::Service', 4);
   template.resourceCountIs('AWS::ServiceDiscovery::Service', 4);
-  template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 4);
+  template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 3);
   template.resourceCountIs('AWS::ElasticLoadBalancingV2::TargetGroup', 4);
 });
 
@@ -86,7 +91,7 @@ test('Create infra with two bots', () => {
   template.resourceCountIs('AWS::IAM::Policy', 14);
   template.resourceCountIs('AWS::ECS::Service', 6);
   template.resourceCountIs('AWS::ServiceDiscovery::Service', 6);
-  template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 6);
+  template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 3);
   template.resourceCountIs('AWS::ElasticLoadBalancingV2::TargetGroup', 6);
 });
 
@@ -124,6 +129,6 @@ test('Create infra with two bots, one prod and one test', () => {
   template.resourceCountIs('AWS::IAM::Policy', 14);
   template.resourceCountIs('AWS::ECS::Service', 6);
   template.resourceCountIs('AWS::ServiceDiscovery::Service', 6);
-  template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 6);
+  template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 3);
   template.resourceCountIs('AWS::ElasticLoadBalancingV2::TargetGroup', 6);
 });

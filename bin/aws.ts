@@ -56,7 +56,12 @@ let config: EnvironmentConfiguration = {
   subDomain,
   softwareVersions: demoSoftwareVersions,
   sourceBucketName,
-  botfrontAdminEmail
+  botfrontAdminEmail,
+  ports: {
+    botfrontPort: 8888,
+    ducklingPort: 8000,
+    restApiPort: 3030
+  }
 }
 
 const demoStack = new InfraStack(app, `demo-stack`, {
@@ -150,7 +155,12 @@ config = {
   subDomain,
   softwareVersions: customerSoftwareVersions,
   sourceBucketName,
-  botfrontAdminEmail
+  botfrontAdminEmail,
+  ports: {
+    botfrontPort: 8888,
+    ducklingPort: 8000,
+    restApiPort: 3030
+  }
 }
 
 const customerStack = new InfraStack(app, `customer-stack`, {

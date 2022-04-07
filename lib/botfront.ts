@@ -25,6 +25,7 @@ interface BotfrontProps {
   baseCluster: ecs.ICluster;
   baseVpc: ec2.IVpc;
   baseLoadbalancer: elbv2.IApplicationLoadBalancer;
+  baseTargetGroups: elbv2.IApplicationTargetGroup[];
   baseCertificate: acm.ICertificate;
   domain: string;
   botfrontVersion: string;
@@ -32,11 +33,12 @@ interface BotfrontProps {
   sourceBucketName: string;
   rasaBots: RasaBot[];
   botfrontAdminEmail: string;
+  ports: {
+    botfrontPort: number;
+    ducklingPort: number;
+    restApiPort: number;
+  }
 }
-
-const restApiPort = 3030;
-const webServicePort = 8888;
-const ducklingPort = 8000;
 
 export class Botfront extends Construct {
   public readonly botfrontService: ecs.FargateService;
@@ -79,14 +81,14 @@ export class Botfront extends Construct {
       memoryLimitMiB: 512,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry('botfront/duckling'),
-        containerPort: ducklingPort
+        containerPort: props.ports.ducklingPort
       },
-      listenerPort: ducklingPort,
+      listenerPort: props.ports.ducklingPort,
       openListener: false,
-      serviceName: `${props.envName}-service-duckling`
+      serviceName: `${props.envName}-service-duckling`,
     });
 
-    duckling.service.connections.allowFromAnyIpv4(ec2.Port.tcp(ducklingPort));
+    duckling.service.connections.allowFromAnyIpv4(ec2.Port.tcp(props.ports.ducklingPort));
 
     botfronttd.node.addDependency(botfrontWaitHandle);
     botfronttd.node.addDependency(botfrontAdminSecret);
@@ -101,17 +103,17 @@ export class Botfront extends Construct {
       containerName: 'botfront',
       portMappings: [
         {
-          hostPort: webServicePort,
-          containerPort: webServicePort
+          hostPort: props.ports.botfrontPort,
+          containerPort: props.ports.botfrontPort
         }, 
         {
-          hostPort: restApiPort,
-          containerPort: restApiPort
+          hostPort: props.ports.restApiPort,
+          containerPort: props.ports.restApiPort
         }
       ],
       environment: {
-        PORT: webServicePort.toString(),
-        REST_API_PORT: restApiPort.toString(),
+        PORT: props.ports.botfrontPort.toString(),
+        REST_API_PORT: props.ports.restApiPort.toString(),
         ROOT_URL: `https://${props.envName}.${props.domain}`,
         FILE_BUCKET: fileBucket.bucketName,
         MODEL_BUCKET: modelBucket.bucketName,
@@ -149,34 +151,12 @@ export class Botfront extends Construct {
 
     botfrontWaitCondition.node.addDependency(this.botfrontService);
 
-    const listener = new elbv2.ApplicationListener(this, `${prefix}listener-botfront`, {
-      loadBalancer: props.baseLoadbalancer,
-      protocol: elbv2.ApplicationProtocol.HTTPS,
-      certificates: [props.baseCertificate]
-    });
-
-    const tg = new elbv2.ApplicationTargetGroup(this, `${prefix}targetgroup-botfront`, {
-      targets: [this.botfrontService],
-      protocol: elbv2.ApplicationProtocol.HTTP,
-      vpc: props.baseVpc,
-      port: webServicePort,
-      deregistrationDelay: Duration.seconds(30),
-      healthCheck: {
-        path: '/',
-        healthyThresholdCount: 2,
-        interval: Duration.seconds(10),
-        timeout: Duration.seconds(5)
-      }
-    });
-
-    listener.addTargetGroups(`${prefix}targetgroupadd-botfront`, {
-      targetGroups: [tg]
-    });
+    props.baseTargetGroups.find(tg => tg.targetGroupName == `tg-botfront`)?.addTarget(this.botfrontService);
 
     if (!props.baseCluster.defaultCloudMapNamespace) {
       throw new Error('Cluster Namespace not defined');
     }
-    const botfrontInternalUrl = `http://${this.botfrontService.cloudMapService?.serviceName}.${props.baseCluster.defaultCloudMapNamespace.namespaceName}:${restApiPort}`;
+    const botfrontInternalUrl = `http://${this.botfrontService.cloudMapService?.serviceName}.${props.baseCluster.defaultCloudMapNamespace.namespaceName}:${props.ports.restApiPort}`;
 
     const lambdaRequest: LambdaRequest = {
       tokenSecretArn: graphqlSecret.secretArn,
@@ -253,8 +233,8 @@ export class Botfront extends Construct {
     lambdaTrigger.node.addDependency(this.botfrontService, botfrontWaitCondition);
 
     this.botfrontService.connections.allowFrom(props.baseLoadbalancer, ec2.Port.tcp(443));
-    this.botfrontService.connections.allowFromAnyIpv4(ec2.Port.tcp(webServicePort));
-    this.botfrontService.connections.allowFrom(projectCreationLambda, ec2.Port.tcp(restApiPort));
+    this.botfrontService.connections.allowFromAnyIpv4(ec2.Port.tcp(props.ports.botfrontPort));
+    this.botfrontService.connections.allowFrom(projectCreationLambda, ec2.Port.tcp(props.ports.restApiPort));
 
     console.log('url', botfrontInternalUrl);
   }

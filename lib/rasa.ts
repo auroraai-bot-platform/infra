@@ -6,7 +6,6 @@ import {
   aws_ecs as ecs,
   aws_elasticloadbalancingv2 as elbv2,
   aws_certificatemanager as acm,
-  aws_s3 as s3,
   aws_secretsmanager as secrets
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -21,6 +20,7 @@ interface RasaProps {
   baseVpc: ec2.IVpc;
   baseLoadbalancer: elbv2.IApplicationLoadBalancer;
   baseCertificate: acm.ICertificate;
+  baseTargetGroups: elbv2.IApplicationTargetGroup[];
   botfrontService: ecs.FargateService;
   rasaVersion: string;
   actionsVersion: string;
@@ -28,6 +28,7 @@ interface RasaProps {
   rasaPort: number;
   actionsPort: number;
   projectId: string;
+  botfrontPort: number;
 }
 
 export class Rasa extends Construct {
@@ -60,7 +61,7 @@ export class Rasa extends Construct {
         environment: {
           BF_PROJECT_ID: props.projectId,
           PORT: props.rasaPort.toString(),
-          BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`
+          BF_URL: `http://botfront.${props.envName}service.internal:${props.botfrontPort.toString()}/graphql`
         },
         secrets: {
           API_KEY: ecs.Secret.fromSecretsManager(graphqlSecret)
@@ -88,38 +89,7 @@ export class Rasa extends Construct {
         serviceName: `${props.envName}-service-rasa-${props.customerName}`
       });
 
-      const rasalistener = new elbv2.ApplicationListener(this, `${prefix}listener-rasa-${props.customerName}`, {
-        loadBalancer: props.baseLoadbalancer,
-        port: props.rasaPort,
-        protocol: elbv2.ApplicationProtocol.HTTPS,
-        certificates: [props.baseCertificate]
-      });
-
-      const rasatg = new elbv2.ApplicationTargetGroup(this, `${prefix}targetgroup-rasa-${props.customerName}`, {
-        targets: [rasaservice],
-        protocol: elbv2.ApplicationProtocol.HTTP,
-        vpc: props.baseVpc,
-        port: props.rasaPort,
-        deregistrationDelay: Duration.seconds(30),
-        healthCheck: {
-          path: '/',
-          healthyThresholdCount: 2,
-          interval: Duration.seconds(10),
-          timeout: Duration.seconds(5)
-        }
-      });
-
-      rasalistener.addTargetGroups(`${prefix}targetgroupadd-rasa-${props.customerName}`, {
-        targetGroups: [rasatg],
-        priority: 1,
-        conditions: [
-          elbv2.ListenerCondition.pathPatterns(['/socket.io', '/socket.io/*'])
-        ]
-      });
-
-      rasalistener.addAction(`${prefix}blockdefault-rasa-${props.customerName}`, {
-        action: elbv2.ListenerAction.fixedResponse(403)
-      });
+      props.baseTargetGroups.find(tg => tg.targetGroupName == `tg-rasa-${props.customerName}`)?.addTarget(rasaservice);
 
       rasaservice.connections.allowFrom(props.baseLoadbalancer, ec2.Port.tcp(props.rasaPort));
       rasaservice.connections.allowFrom(props.botfrontService, ec2.Port.tcp(props.rasaPort));
@@ -144,7 +114,7 @@ export class Rasa extends Construct {
         command: ["start", "--actions", "actions", "--debug", "--port", props.actionsPort.toString()],
         environment: {
           PORT: props.actionsPort.toString(),
-          BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`
+          BF_URL: `http://botfront.${props.envName}service.internal:${props.botfrontPort.toString()}/graphql`
         },
         logging: ecs.LogDriver.awsLogs({
           streamPrefix: `${prefix}actions-${props.customerName}`,
@@ -161,30 +131,7 @@ export class Rasa extends Construct {
         serviceName: `${props.envName}-service-actions-${props.customerName}`
       });
 
-      const actionslistener = new elbv2.ApplicationListener(this, `${prefix}listener-actions-${props.customerName}`, {
-        loadBalancer: props.baseLoadbalancer,
-        port: props.actionsPort,
-        protocol: elbv2.ApplicationProtocol.HTTPS,
-        certificates: [props.baseCertificate]
-      });
-
-      const actionstg = new elbv2.ApplicationTargetGroup(this, `${prefix}targetgroup-actions-${props.customerName}`, {
-        targets: [actionsservice],
-        protocol: elbv2.ApplicationProtocol.HTTP,
-        vpc: props.baseVpc,
-        port: props.actionsPort,
-        healthCheck: {
-          path: '/actions',
-          healthyThresholdCount: 2,
-          interval: Duration.seconds(10),
-          timeout: Duration.seconds(5)
-        },
-        deregistrationDelay: Duration.seconds(30)
-      });
-
-      actionslistener.addTargetGroups(`${prefix}targetgroupadd-actions-${props.customerName}`, {
-        targetGroups: [actionstg]
-      });
+      props.baseTargetGroups.find(tg => tg.targetGroupName == `tg-actions-${props.customerName}`)?.addTarget(rasaservice);
 
       actionsservice.connections.allowFrom(props.botfrontService, ec2.Port.tcp(props.actionsPort));
       actionsservice.connections.allowFrom(rasaservice, ec2.Port.tcp(props.actionsPort));

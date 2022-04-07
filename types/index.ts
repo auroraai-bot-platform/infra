@@ -34,6 +34,11 @@ export interface EnvironmentConfiguration {
   softwareVersions: SoftwareVersions;
   sourceBucketName: string;
   botfrontAdminEmail: string;
+  ports: {
+    botfrontPort: number;
+    restApiPort: number;
+    ducklingPort: number;
+  }
 }
 
 export interface DefaultRepositories {
