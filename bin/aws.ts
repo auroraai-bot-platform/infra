@@ -95,6 +95,7 @@ const customerRasaBots: RasaBot[] = [
     projectName: 'hytebotti',
     hasProd: false,
     additionalConfig: {
+      language: 'fi',
       intents: {
         onerva: '/aloita{"oma_organisaatio": "onerva"}',
         vamos: '/aloita{"oma_organisaatio": "vamos"}',
@@ -110,7 +111,11 @@ const customerRasaBots: RasaBot[] = [
     hasProd: false,
     projectId: '5pdZnBudb8vgahE5X',
     customerName: 'iht-botti',
-    projectName: 'ihtbotti'
+    projectName: 'ihtbotti',
+    additionalConfig: {
+      language: 'en',
+      intents: {}
+    }
   },
   {
     rasaPort: 5009,

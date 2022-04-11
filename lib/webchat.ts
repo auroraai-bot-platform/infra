@@ -34,7 +34,7 @@ export class Webchat extends Construct {
   constructor(scope: Construct, id: string, props: WebChatProps) {
     super(scope, id);
     const prefix = createPrefix(props.envName, this.constructor.name);
-    const frontendBucket = new s3.Bucket(this, `${prefix}frontend-bucket`, { bucketName: `${prefix}frontend-bucket`, publicReadAccess: false, autoDeleteObjects: true, removalPolicy: RemovalPolicy.DESTROY });
+    const frontendBucket = new s3.Bucket(this, `${prefix}frontend-bucket`, { bucketName: `${prefix}frontend-bucket`, publicReadAccess: false, autoDeleteObjects: true, encryption: s3.BucketEncryption.S3_MANAGED, versioned: true, removalPolicy: RemovalPolicy.DESTROY });
 
     const cloudfrontAI = new cloudfront.OriginAccessIdentity(this, `${prefix}distribution-access-identity`, {
     });
@@ -76,7 +76,7 @@ export class Webchat extends Construct {
 
     const config = {
       additionalConfig: props.additionalConfig,
-      language: 'fi',
+      language: props.additionalConfig?.language || 'fi',
       url: `${props.subDomain}:${props.rasaPort}`,
     };
 
@@ -90,6 +90,7 @@ export class Webchat extends Construct {
         responseCode: 200,
         responsePagePath: '/index.html'
       }],
+      loggingConfig: ({}),
       originConfigs: [
         {
           s3OriginSource: {

@@ -8,6 +8,7 @@ export interface RasaBot {
   rasaPortProd?: number;
   actionsPortProd?: number;
   additionalConfig?: {
+    language: string;
     intents: {
       [intentPath: string]: string;
     }

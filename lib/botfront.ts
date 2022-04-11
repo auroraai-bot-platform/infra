@@ -52,8 +52,8 @@ export class Botfront extends Construct {
     const mongoSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}botfront-mongo-secret`, `${props.envName}/mongo/connectionstring`);
     const graphqlSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}botfront-graphql-secret`, `${props.envName}/graphql/apikey`);
 
-    const fileBucket = new s3.Bucket(this, `${prefix}file-bucket`, { bucketName: `${prefix}file-bucket`, publicReadAccess: true });
-    const modelBucket = new s3.Bucket(this, `${prefix}model-bucket`, { bucketName: `${prefix}model-bucket` });
+    const fileBucket = new s3.Bucket(this, `${prefix}file-bucket`, { bucketName: `${prefix}file-bucket`, publicReadAccess: true, encryption: s3.BucketEncryption.S3_MANAGED, versioned: true });
+    const modelBucket = new s3.Bucket(this, `${prefix}model-bucket`, { bucketName: `${prefix}model-bucket`, encryption: s3.BucketEncryption.S3_MANAGED, versioned: true });
 
     const botfrontWaitHandle = new cf.CfnWaitConditionHandle(this, `${prefix}botfront-waithandle`);
 
