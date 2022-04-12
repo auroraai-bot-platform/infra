@@ -20,7 +20,7 @@ const defaultRepositories: DefaultRepositories = {
 };
 
 const customerSoftwareVersions: SoftwareVersions = {
-  frontend: '0.0.8',
+  frontend: '0.0.9',
   botfront: '3.1.2',
   rasa: '3.0.2',
   actions: 'test-recommender-2',
@@ -59,7 +59,8 @@ const customerRasaBots: RasaBot[] = [
     actionsPort: 5058,
     projectId: '5pdZnBudb8vgahE5X',
     customerName: 'iht-botti',
-    projectName: 'ihtbotti'
+    projectName: 'ihtbotti',
+    language: 'en'
   },
   {
     rasaPort: 5009,
@@ -108,7 +109,7 @@ const demoEnvName = 'demo';
 const demoSubDomain = `${demoEnvName}.${domain}`;
 
 const demoSoftwareVersions: SoftwareVersions = {
-  frontend: '0.0.8',
+  frontend: '0.0.9',
   botfront: '3.1.2',
   rasa: '3.0.3',
   actions: 'test-recommender-2',

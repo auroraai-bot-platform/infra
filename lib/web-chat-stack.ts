@@ -71,7 +71,7 @@ export class WebChatStack extends cdk.Stack {
 
       const config = {
         additionalConfig: rasaBot.additionalConfig,
-        language: 'fi',
+        language: rasaBot.language ?? 'fi',
         url: `${props.subDomain}:${rasaBot.rasaPort}`,
       };
 
