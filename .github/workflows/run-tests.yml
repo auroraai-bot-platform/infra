@@ -4,6 +4,10 @@ on:
     branches:
       - main
 
+env:
+  CI: true
+  FORCE_PREBUILT_LAMBDA: true
+
 jobs:
   cloud-tests:
     runs-on: ubuntu-latest
