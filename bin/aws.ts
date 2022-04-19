@@ -21,7 +21,7 @@ const defaultRepositories: DefaultRepositories = {
 
 const customerSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.9',
-  botfront: '3.1.2',
+  botfront: '3.1.3',
   rasa: '3.0.2',
   actions: 'test-recommender-2',
   projectCreation: '1.0.0'
@@ -110,7 +110,7 @@ const demoSubDomain = `${demoEnvName}.${domain}`;
 
 const demoSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.9',
-  botfront: '3.1.2',
+  botfront: '3.1.3',
   rasa: '3.0.3',
   actions: 'test-recommender-2',
   projectCreation: '1.0.0'
