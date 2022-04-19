@@ -9,6 +9,7 @@ import {
   aws_s3 as s3,
   aws_secretsmanager as secrets
 } from 'aws-cdk-lib';
+import { ContainerDefinitionOptions } from 'aws-cdk-lib/aws-ecs';
 import { Construct } from 'constructs';
 
 import { BaseStackProps, DefaultRepositories, RasaBot } from '../types';
@@ -35,6 +36,7 @@ export class EcsRasaStack extends Stack {
     for (const rasaBot of props.rasaBots) {
 
       // Rasa #1
+      const modelBucket = s3.Bucket.fromBucketName(this, `${prefix}model-bucket-${rasaBot.customerName}`, `${props.envName}.ecsbf.model-bucket`);
       const rasarepo = ecr.Repository.fromRepositoryName(this, `${prefix}repository-rasa-${rasaBot.customerName}`, props.defaultRepositories.rasaBotRepository);
 
       const rasatd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-${rasaBot.customerName}`, {
@@ -47,6 +49,25 @@ export class EcsRasaStack extends Stack {
         name: `rasavolume-${rasaBot.customerName}`,
       });
 
+      let environment: ContainerDefinitionOptions['environment'];
+      if (rasaBot.rasaLoadModels) {
+        environment = {
+          BF_PROJECT_ID: rasaBot.projectId,
+          PORT: rasaBot.rasaPort.toString(),
+          BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`,
+          MODEL_BUCKET: modelBucket.bucketName,
+          LANGUAGE_MODEL_S3_DIR: 'bert/',
+          LANGUAGE_MODEL_LOCAL_DIR: '/app/models',
+        }
+        modelBucket.grantRead(rasatd.taskRole);
+      } else {
+        environment = {
+          BF_PROJECT_ID: rasaBot.projectId,
+          PORT: rasaBot.rasaPort.toString(),
+          BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`
+        }
+      }
+
       rasatd.addContainer(`${prefix}container-rasa-${rasaBot.customerName}`, {
         image: ecs.ContainerImage.fromEcrRepository(rasarepo, props.rasaVersion),
         containerName: `rasa-${rasaBot.customerName}`,
@@ -54,12 +75,10 @@ export class EcsRasaStack extends Stack {
           hostPort: rasaBot.rasaPort,
           containerPort: rasaBot.rasaPort
         }],
-        command: ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", graphqlSecret.secretValue.toString()],
-        environment: {
-          BF_PROJECT_ID: rasaBot.projectId,
-          PORT: rasaBot.rasaPort.toString(),
-          BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`
-        },
+        command: rasaBot.rasaLoadModels? 
+        ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", graphqlSecret.secretValue.toString(), "--load_s3_language_models"] :
+        ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", graphqlSecret.secretValue.toString()],
+        environment: environment,
         secrets: {
           API_KEY: ecs.Secret.fromSecretsManager(graphqlSecret)
         },
@@ -192,7 +211,6 @@ export class EcsRasaStack extends Stack {
 
       // Rasa #2
       if (rasaBot.rasaPortProd != undefined) {
-        const modelBucket = s3.Bucket.fromBucketName(this, `${prefix}model-bucket-${rasaBot.customerName}`, `${prefix}model-bucket`)
         const rasaProdtd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-prod-${rasaBot.customerName}`, {
           cpu: '1024',
           memoryMiB: '2048',
@@ -200,6 +218,26 @@ export class EcsRasaStack extends Stack {
         });
   
         modelBucket.grantRead(rasaProdtd.taskRole, `model-${rasaBot.projectId}.tar.gz`);
+
+        let environment: ContainerDefinitionOptions['environment'];
+        if (rasaBot.rasaLoadModels) {
+          environment = {
+            BF_PROJECT_ID: rasaBot.projectId,
+            PORT: rasaBot.rasaPort.toString(),
+            BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`,
+            BUCKET_NAME: modelBucket.bucketName,
+            MODEL_BUCKET: modelBucket.bucketName,
+            LANGUAGE_MODEL_S3_DIR: 'bert/',
+            LANGUAGE_MODEL_LOCAL_DIR: '/app/models',
+          }
+        } else {
+          environment = {
+            BF_PROJECT_ID: rasaBot.projectId,
+            PORT: rasaBot.rasaPort.toString(),
+            BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`,
+            BUCKET_NAME: modelBucket.bucketName
+          }
+        }
   
         rasaProdtd.addContainer(`${prefix}container-rasa-prod-${rasaBot.customerName}`, {
           image: ecs.ContainerImage.fromEcrRepository(rasarepo, props.rasaVersion),
@@ -208,13 +246,10 @@ export class EcsRasaStack extends Stack {
             hostPort: rasaBot.rasaPortProd,
             containerPort: rasaBot.rasaPortProd
           }],
-          command: ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPortProd.toString(), "--auth-token", graphqlSecret.secretValue.toString()],
-          environment: {
-            BF_PROJECT_ID: rasaBot.projectId,
-            PORT: rasaBot.rasaPort.toString(),
-            BF_URL: `http://botfront.${props.envName}service.internal:8888/graphql`,
-            BUCKET_NAME: modelBucket.bucketName
-          },
+          command: rasaBot.rasaLoadModels? 
+            ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPortProd.toString(), "--auth-token", graphqlSecret.secretValue.toString(), "--load_s3_language_models"] :
+            ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPortProd.toString(), "--auth-token", graphqlSecret.secretValue.toString()],
+          environment: environment,
           secrets: {
             API_KEY: ecs.Secret.fromSecretsManager(graphqlSecret)
           },
