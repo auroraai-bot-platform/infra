@@ -76,7 +76,7 @@ export class EcsRasaStack extends Stack {
           containerPort: rasaBot.rasaPort
         }],
         command: rasaBot.rasaLoadModels? 
-        ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", graphqlSecret.secretValue.toString(), "--load_s3_language_models"] :
+        ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", graphqlSecret.secretValue.toString(), "--load-s3-language-models"] :
         ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", graphqlSecret.secretValue.toString()],
         environment: environment,
         secrets: {
@@ -247,7 +247,7 @@ export class EcsRasaStack extends Stack {
             containerPort: rasaBot.rasaPortProd
           }],
           command: rasaBot.rasaLoadModels? 
-            ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPortProd.toString(), "--auth-token", graphqlSecret.secretValue.toString(), "--load_s3_language_models"] :
+            ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPortProd.toString(), "--auth-token", graphqlSecret.secretValue.toString(), "--load-s3-language-models"] :
             ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPortProd.toString(), "--auth-token", graphqlSecret.secretValue.toString()],
           environment: environment,
           secrets: {
