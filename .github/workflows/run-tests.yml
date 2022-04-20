@@ -18,10 +18,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Setup Node.js 14.x 
+      - name: Setup Node.js lts/* (current lts version) 
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: 'lts/*'
       - name: Install packages
         run: npm ci
       - name: Run tests
