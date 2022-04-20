@@ -6,6 +6,7 @@ import {
   aws_ecs as ecs,
   aws_elasticloadbalancingv2 as elbv2,
   aws_certificatemanager as acm,
+  aws_ssm as ssm,
   aws_s3 as s3,
   aws_secretsmanager as secrets,
   aws_lambda as lambda,
@@ -50,8 +51,13 @@ export class EcsBfStack extends Stack {
     const graphqlSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}botfront-graphql-secret`, `${props.envName}/graphql/apikey`);
 
     const fileBucket = new s3.Bucket(this, `${prefix}file-bucket`, { bucketName: `${prefix}file-bucket`, publicReadAccess: true });
+    const fileBucketParameter = new ssm.StringParameter(this, `${prefix}file-bucket-param`, {
+      stringValue: fileBucket.bucketName
+    });
     const modelBucket = new s3.Bucket(this, `${prefix}model-bucket`, { bucketName: `${prefix}model-bucket` });
-
+    const modelBucketParameter = new ssm.StringParameter(this, `${prefix}model-bucket-param`, {
+      stringValue: modelBucket.bucketName
+    });
     const botfrontWaitHandle = new cf.CfnWaitConditionHandle(this, `${prefix}botfront-waithandle`);
 
     const botfrontAdminSecretName = `${prefix}botfront-admin-password`;
@@ -112,14 +118,14 @@ export class EcsBfStack extends Stack {
         PORT: webServicePort.toString(),
         REST_API_PORT: restApiPort.toString(),
         ROOT_URL: `https://${props.envName}.${props.domain}`,
-        FILE_BUCKET: fileBucket.bucketName,
-        MODEL_BUCKET: modelBucket.bucketName,
         FILE_PREFIX: 'files/',
         FILE_SIZE_LIMIT: `${1024 * 1024}`,
         SIGNAL_URL: `${botfrontWaitHandle.ref}`,
         ADMIN_USER: props.botfrontAdminEmail,
       },
       secrets: {
+        FILE_BUCKET: ecs.Secret.fromSsmParameter(fileBucketParameter),
+        MODEL_BUCKET: ecs.Secret.fromSsmParameter(modelBucketParameter),
         MONGO_URL: ecs.Secret.fromSecretsManager(mongoSecret),
         API_KEY: ecs.Secret.fromSecretsManager(graphqlSecret),
         ADMIN_PASSWORD: ecs.Secret.fromSecretsManager(botfrontAdminSecret)

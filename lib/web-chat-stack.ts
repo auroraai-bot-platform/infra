@@ -79,6 +79,7 @@ export class WebChatStack extends cdk.Stack {
 
       const cloudFrontWebDistribution = new cloudfront.CloudFrontWebDistribution(this, `${prefix}frontend-distribution-${rasaBot.customerName}`, {
         defaultRootObject: 'index.html',
+        loggingConfig: {},
         errorConfigurations: [{
           errorCode: 404,
           errorCachingMinTtl: 60,

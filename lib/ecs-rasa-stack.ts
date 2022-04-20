@@ -118,10 +118,6 @@ export class EcsRasaStack extends Stack {
         port: rasaBot.rasaPort,
         deregistrationDelay: Duration.seconds(30),
         healthCheck: {
-          path: '/',
-          healthyThresholdCount: 2,
-          interval: Duration.seconds(10),
-          timeout: Duration.seconds(5)
         }
       });
 
