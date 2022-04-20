@@ -58,6 +58,7 @@ export class EcsRasaStack extends Stack {
           MODEL_BUCKET: modelBucket.bucketName,
           LANGUAGE_MODEL_S3_DIR: 'bert/',
           LANGUAGE_MODEL_LOCAL_DIR: '/app/models',
+          AWS_ENDPOINT: ''
         }
         modelBucket.grantRead(rasatd.taskRole);
       } else {
@@ -217,7 +218,7 @@ export class EcsRasaStack extends Stack {
           compatibility: ecs.Compatibility.FARGATE
         });
   
-        modelBucket.grantRead(rasaProdtd.taskRole, `model-${rasaBot.projectId}.tar.gz`);
+        modelBucket.grantRead(rasaProdtd.taskRole);
 
         let environment: ContainerDefinitionOptions['environment'];
         if (rasaBot.rasaLoadModels) {
@@ -229,6 +230,7 @@ export class EcsRasaStack extends Stack {
             MODEL_BUCKET: modelBucket.bucketName,
             LANGUAGE_MODEL_S3_DIR: 'bert/',
             LANGUAGE_MODEL_LOCAL_DIR: '/app/models',
+            AWS_ENDPOINT: ''
           }
         } else {
           environment = {
