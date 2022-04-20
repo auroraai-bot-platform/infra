@@ -12,6 +12,7 @@ export interface RasaBot {
   projectName: string;
   rasaPort: number;
   rasaPortProd?: number;
+  rasaLoadModels?: boolean;
   hasProd?: boolean;
   language?: string;
   additionalConfig?: {
