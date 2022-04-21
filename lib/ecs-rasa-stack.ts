@@ -9,7 +9,6 @@ import {
   aws_s3 as s3,
   aws_secretsmanager as secrets
 } from 'aws-cdk-lib';
-import { ContainerDefinitionOptions } from 'aws-cdk-lib/aws-ecs';
 import { Construct } from 'constructs';
 
 import { BaseStackProps, DefaultRepositories, RasaBot } from '../types';
@@ -41,15 +40,15 @@ export class EcsRasaStack extends Stack {
 
       const rasatd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-${rasaBot.customerName}`, {
         cpu: '2048',
-        memoryMiB: '4096',
+        memoryMiB: '16384',
         compatibility: ecs.Compatibility.FARGATE
       });
 
       rasatd.addVolume({
-        name: `rasavolume-${rasaBot.customerName}`,
+        name: `rasavolume-${rasaBot.customerName}`
       });
 
-      let environment: ContainerDefinitionOptions['environment'];
+      let environment: ecs.ContainerDefinitionOptions['environment'];
       if (rasaBot.rasaLoadModels) {
         environment = {
           BF_PROJECT_ID: rasaBot.projectId,
@@ -118,6 +117,10 @@ export class EcsRasaStack extends Stack {
         port: rasaBot.rasaPort,
         deregistrationDelay: Duration.seconds(30),
         healthCheck: {
+          interval: Duration.seconds(300),
+          healthyThresholdCount: 5,
+          timeout: Duration.seconds(60),
+          unhealthyThresholdCount: 5
         }
       });
 
@@ -216,7 +219,7 @@ export class EcsRasaStack extends Stack {
   
         modelBucket.grantRead(rasaProdtd.taskRole);
 
-        let environment: ContainerDefinitionOptions['environment'];
+        let environment: ecs.ContainerDefinitionOptions['environment'];
         if (rasaBot.rasaLoadModels) {
           environment = {
             BF_PROJECT_ID: rasaBot.projectId,
