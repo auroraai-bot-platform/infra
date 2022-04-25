@@ -40,7 +40,7 @@ export class EcsRasaStack extends Stack {
 
       const rasatd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-${rasaBot.customerName}`, {
         cpu: '2048',
-        memoryMiB: '16384',
+        memoryMiB: rasaBot.rasaLoadModels? '16384': '4096',
         compatibility: ecs.Compatibility.FARGATE
       });
 
