@@ -31,7 +31,7 @@ export class EcsRasaStack extends Stack {
     super(scope, id, props);
     const prefix = createPrefix(props.envName, this.constructor.name);
     const graphqlSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}botfront-graphql-secret`, `${props.envName}/graphql/apikey`);
-    const actionsSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}actions-ptv-secret`, `${props.envName}/actions/servicerecommender`)
+    const actionsSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}actions-ptv-secret`, `${props.envName}/actions/servicerecommender`);
     for (const rasaBot of props.rasaBots) {
 
       // Rasa #1
@@ -40,7 +40,7 @@ export class EcsRasaStack extends Stack {
 
       const rasatd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-${rasaBot.customerName}`, {
         cpu: '2048',
-        memoryMiB: rasaBot.rasaLoadModels? '16384': '4096',
+        memoryMiB: rasaBot.rasaLoadModels? '16384': '8192',
         compatibility: ecs.Compatibility.FARGATE
       });
 
