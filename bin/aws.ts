@@ -89,6 +89,13 @@ const customerRasaBots: RasaBot[] = [
     projectId: 'Tyofez6zTQDxxSFZT',
     customerName: 'albotti',
     projectName: 'albotti'
+  },
+  {
+    rasaPort: 5013,
+    actionsPort: 5063,
+    projectId: 'j5nFh8Rhr2jZkQHcg',
+    customerName: 'kuhr',
+    projectName: 'kuhr'
   }
 ];
 
