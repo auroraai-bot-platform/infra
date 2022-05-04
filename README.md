@@ -1,5 +1,7 @@
 # AuroraAI ChatBot AWS environment guide and templates
 
+This collection of templates configures the environment mostly automatically but some steps like database connection strings and passwords should be generated manually into the environment and passed as secret variables to the components.
+
 ## Todo
 - Add cdk template for bootstrapping the environment
 - Add cdk template for creating the initial structure
@@ -8,12 +10,16 @@
 
 ## Manual steps
 
+### Before starting
+Make sure you have a domain name available for the environment. This template setups everything with route53 so if you are using something else you need to configure the routing separately
+
 ### Creating an environment
 - Allow NAT gateway's elastic IP to mongodb (Does not stop deployment)
 - Populate two secrets for the environment in secretsmanager (Does not stop deployment)
   - `<envName>/mongo/connectionstring` connection string to mongodb (export from atlas)
   - `<envName>/graphql/apikey` apikey for rasa connection (just letters and numbers)
 - Create a new environment with the `createEnvironment` function and run `cdk deploy <envName>-*`
+
 ### Destroying an environment
 - Empty and delete ECR repos manually if you destroy environments (After environment destruction)
 - Empty and delete the frontend and file s3 buckets for the destroyed environment (After environment destruction)
@@ -65,6 +71,7 @@ Additionally, each resource should have following tags:
 - Navigate to the CDK folder `infra/aws`
 - Run `npm run build`
 - Run `cdk diff` to output the changes to infrastructure
+  - You will always see changes to lambda functions as timestamp is one of the parameters (cannot be the same two times)
 - Run `cdk deploy '*'` to deploy everything
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
