@@ -20,7 +20,7 @@ const defaultRepositories: DefaultRepositories = {
 };
 
 const customerSoftwareVersions: SoftwareVersions = {
-  frontend: '0.0.9',
+  frontend: '0.0.10',
   botfront: '3a68edaef3f29f3202efe0edce23bf59fdaaec1b',
   rasa: '9c692b7d3e17fcdcd93db8b919aa8aec6f8c5932',
   actions: 'test-recommender-2',
@@ -116,7 +116,7 @@ const demoEnvName = 'demo';
 const demoSubDomain = `${demoEnvName}.${domain}`;
 
 const demoSoftwareVersions: SoftwareVersions = {
-  frontend: '0.0.9',
+  frontend: '0.0.10',
   botfront: '3a68edaef3f29f3202efe0edce23bf59fdaaec1b',
   rasa: '9c692b7d3e17fcdcd93db8b919aa8aec6f8c5932',
   actions: 'test-recommender-2',
