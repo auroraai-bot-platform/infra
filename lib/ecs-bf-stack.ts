@@ -89,6 +89,7 @@ export class EcsBfStack extends Stack {
       memoryLimitMiB: 512,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry('botfront/duckling'),
+        family: `${props.envName}-duckling-td`,
         containerPort: ducklingPort
       },
       listenerPort: ducklingPort,
