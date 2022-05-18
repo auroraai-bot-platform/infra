@@ -23,9 +23,9 @@ export interface RasaBot {
 }
 export interface SoftwareVersions {
   frontend: string;
-  botfront: string;
-  rasa: string;
-  actions: string;
+  botfront?: string;
+  rasa?: string;
+  actions?: string;
   projectCreation: string;
 }
 

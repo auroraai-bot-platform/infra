@@ -7,7 +7,8 @@ import {
   aws_elasticloadbalancingv2 as elbv2,
   aws_certificatemanager as acm,
   aws_s3 as s3,
-  aws_secretsmanager as secrets
+  aws_secretsmanager as secrets,
+  aws_ssm as ssm
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
@@ -22,8 +23,8 @@ interface EcsRasaProps extends BaseStackProps {
   baseCertificate: acm.ICertificate;
   botfrontService: ecs.FargateService;
   rasaBots: RasaBot[];
-  rasaVersion: string;
-  actionsVersion: string;
+  rasaVersion: string | undefined;
+  actionsVersion: string | undefined;
 }
 
 export class EcsRasaStack extends Stack {
@@ -32,6 +33,12 @@ export class EcsRasaStack extends Stack {
     const prefix = createPrefix(props.envName, this.constructor.name);
     const graphqlSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}botfront-graphql-secret`, `${props.envName}/graphql/apikey`);
     const actionsSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}actions-ptv-secret`, `${props.envName}/actions/servicerecommender`);
+    const latestRasaImageTag = ssm.StringParameter.fromStringParameterName(this, `${prefix}latest-rasa-version`, 'rasa-image-tag-latest').stringValue;
+    const latestActionsImageTag = ssm.StringParameter.fromStringParameterName(this, `${prefix}latest-actions-version`, 'actions-image-tag-latest').stringValue;
+
+    const rasaTag = props.rasaVersion? props.rasaVersion: latestRasaImageTag;
+    const actionsTag = props.actionsVersion? props.actionsVersion: latestActionsImageTag;
+
     for (const rasaBot of props.rasaBots) {
 
       // Rasa #1
@@ -41,7 +48,8 @@ export class EcsRasaStack extends Stack {
       const rasatd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-${rasaBot.customerName}`, {
         cpu: '2048',
         memoryMiB: rasaBot.rasaLoadModels? '16384': '8192',
-        compatibility: ecs.Compatibility.FARGATE
+        compatibility: ecs.Compatibility.FARGATE,
+        family: `${props.envName}-rasa-${rasaBot.customerName}`
       });
 
       rasatd.addVolume({
@@ -68,16 +76,18 @@ export class EcsRasaStack extends Stack {
         }
       }
 
+      const command: string[] = ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", graphqlSecret.secretValue.toString()];
+      const modelLoader: string = "--load-s3-language-models";
+      rasaBot.rasaLoadModels? command.push(modelLoader) : null;
+
       rasatd.addContainer(`${prefix}container-rasa-${rasaBot.customerName}`, {
-        image: ecs.ContainerImage.fromEcrRepository(rasarepo, props.rasaVersion),
+        image: ecs.ContainerImage.fromEcrRepository(rasarepo, rasaTag),
         containerName: `rasa-${rasaBot.customerName}`,
         portMappings: [{
           hostPort: rasaBot.rasaPort,
           containerPort: rasaBot.rasaPort
         }],
-        command: rasaBot.rasaLoadModels? 
-        ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", graphqlSecret.secretValue.toString(), "--load-s3-language-models"] :
-        ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPort.toString(), "--auth-token", graphqlSecret.secretValue.toString()],
+        command,
         environment: environment,
         secrets: {
           API_KEY: ecs.Secret.fromSecretsManager(graphqlSecret)
@@ -146,11 +156,12 @@ export class EcsRasaStack extends Stack {
       const actionstd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-actions-${rasaBot.customerName}`, {
         cpu: '256',
         memoryMiB: '512',
-        compatibility: ecs.Compatibility.FARGATE
+        compatibility: ecs.Compatibility.FARGATE,
+        family: `${props.envName}-actions-${rasaBot.customerName}`
       });
 
       actionstd.addContainer(`${prefix}actions`, {
-        image: ecs.ContainerImage.fromEcrRepository(actionsrepo, props.actionsVersion),
+        image: ecs.ContainerImage.fromEcrRepository(actionsrepo, actionsTag),
         containerName: `actions-${rasaBot.customerName}`,
         portMappings: [{
           hostPort: rasaBot.actionsPort,
@@ -214,7 +225,8 @@ export class EcsRasaStack extends Stack {
         const rasaProdtd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-prod-${rasaBot.customerName}`, {
           cpu: '1024',
           memoryMiB: '2048',
-          compatibility: ecs.Compatibility.FARGATE
+          compatibility: ecs.Compatibility.FARGATE,
+          family: `${props.envName}-rasa-prod-${rasaBot.customerName}`
         });
   
         modelBucket.grantRead(rasaProdtd.taskRole);
@@ -241,7 +253,7 @@ export class EcsRasaStack extends Stack {
         }
   
         rasaProdtd.addContainer(`${prefix}container-rasa-prod-${rasaBot.customerName}`, {
-          image: ecs.ContainerImage.fromEcrRepository(rasarepo, props.rasaVersion),
+          image: ecs.ContainerImage.fromEcrRepository(rasarepo, rasaTag),
           containerName: `rasa-prod-${rasaBot.customerName}`,
           portMappings: [{
             hostPort: rasaBot.rasaPortProd,
@@ -303,11 +315,12 @@ export class EcsRasaStack extends Stack {
           const actionsprodtd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-actions-prod-${rasaBot.customerName}`, {
             cpu: '256',
             memoryMiB: '512',
-            compatibility: ecs.Compatibility.FARGATE
+            compatibility: ecs.Compatibility.FARGATE,
+            family: `${props.envName}-actions-prod-${rasaBot.customerName}`
           });
     
           actionsprodtd.addContainer(`${prefix}actions-prod`, {
-            image: ecs.ContainerImage.fromEcrRepository(actionsrepo, props.actionsVersion),
+            image: ecs.ContainerImage.fromEcrRepository(actionsrepo, actionsTag),
             containerName: `actions-prod-${rasaBot.customerName}`,
             portMappings: [{
               hostPort: rasaBot.actionsPortProd,

@@ -6,7 +6,8 @@ import {
   aws_elasticloadbalancingv2 as elbv2,
   aws_route53 as route53,
   aws_route53_targets as route53t,
-  aws_certificatemanager as acm
+  aws_certificatemanager as acm,
+  aws_ssm as ssm
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
@@ -20,7 +21,7 @@ interface EcsBaseProps extends BaseStackProps {
   domain: string;
   subDomain: string;
   ecrRepos: RasaBot[];
-  actionsTag: string;
+  actionsTag: string | undefined;
 }
 
 export class EcsBaseStack extends Stack {
@@ -32,6 +33,13 @@ export class EcsBaseStack extends Stack {
   constructor(scope: Construct, id: string, props: EcsBaseProps) {
     super(scope, id, props);
     const prefix = createPrefix(props.envName, this.constructor.name);
+    const latestActionsImageTag = ssm.StringParameter.fromStringParameterName(this, `${prefix}latest-actions-version`, 'actions-image-tag-latest').stringValue;
+    let actionsTag: string;
+    if (props.actionsTag) {
+      actionsTag = props.actionsTag
+    } else {
+      actionsTag = latestActionsImageTag
+    }
 
     this.baseVpc = new ec2.Vpc(this, `${prefix}vpc`, {
       maxAzs: 2,
@@ -73,8 +81,8 @@ export class EcsBaseStack extends Stack {
       });
 
       new ecrdeploy.ECRDeployment(this, `${prefix}deploy-actions-image-${ecrRepoConfig.customerName}`, {
-        src: new ecrdeploy.DockerImageName(`${actionsBaseRepo.repositoryUri}:${props.actionsTag}`),
-        dest: new ecrdeploy.DockerImageName(`${actionsRepo.repositoryUri}:${props.actionsTag}`),
+        src: new ecrdeploy.DockerImageName(`${actionsBaseRepo.repositoryUri}:${actionsTag}`),
+        dest: new ecrdeploy.DockerImageName(`${actionsRepo.repositoryUri}:${actionsTag}`),
       });
     }
 

@@ -27,7 +27,7 @@ interface EcsBfProps extends BaseStackProps {
   baseLoadbalancer: elbv2.IApplicationLoadBalancer;
   baseCertificate: acm.ICertificate;
   domain: string;
-  botfrontVersion: string;
+  botfrontVersion: string | undefined;
   projectCreationVersion: string;
   sourceBucketName: string;
   rasaBots: RasaBot[];
@@ -46,6 +46,10 @@ export class EcsBfStack extends Stack {
 
     const prefix = createPrefix(props.envName, this.constructor.name);
     const bfrepo = ecr.Repository.fromRepositoryName(this, `${prefix}repository-botfront`, props.defaultRepositories.botfrontRepository);
+
+    const latestBotfrontImageTag = ssm.StringParameter.fromStringParameterName(this, `latest-botfront-version`, 'botfront-image-tag-latest').stringValue;
+
+    const botfrontTag = props.botfrontVersion? props.botfrontVersion: latestBotfrontImageTag
 
     const mongoSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}botfront-mongo-secret`, `${props.envName}/mongo/connectionstring`);
     const graphqlSecret = secrets.Secret.fromSecretNameV2(this, `${prefix}botfront-graphql-secret`, `${props.envName}/graphql/apikey`);
@@ -71,7 +75,8 @@ export class EcsBfStack extends Stack {
     const botfronttd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-botfront`, {
       cpu: '1024',
       memoryMiB: '4096',
-      compatibility:  ecs.Compatibility.FARGATE
+      compatibility:  ecs.Compatibility.FARGATE,
+      family: `${props.envName}-botfront-td`
     });
 
     const duckling = new ecsp.ApplicationLoadBalancedFargateService(this, `${prefix}service-duckling`, {
@@ -102,7 +107,7 @@ export class EcsBfStack extends Stack {
     modelBucket.grantDelete(botfronttd.taskRole);
 
     botfronttd.addContainer(`${prefix}container-botfront`, {
-      image: ecs.ContainerImage.fromEcrRepository(bfrepo, props.botfrontVersion),
+      image: ecs.ContainerImage.fromEcrRepository(bfrepo, botfrontTag),
       containerName: 'botfront',
       portMappings: [
         {
