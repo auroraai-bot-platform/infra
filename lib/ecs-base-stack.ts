@@ -34,12 +34,8 @@ export class EcsBaseStack extends Stack {
     super(scope, id, props);
     const prefix = createPrefix(props.envName, this.constructor.name);
     const latestActionsImageTag = ssm.StringParameter.fromStringParameterName(this, `${prefix}latest-actions-version`, 'actions-image-tag-latest').stringValue;
-    let actionsTag: string;
-    if (props.actionsTag) {
-      actionsTag = props.actionsTag
-    } else {
-      actionsTag = latestActionsImageTag
-    }
+    const actionsTag = props.actionsTag? props.actionsTag : latestActionsImageTag;
+
 
     this.baseVpc = new ec2.Vpc(this, `${prefix}vpc`, {
       maxAzs: 2,
