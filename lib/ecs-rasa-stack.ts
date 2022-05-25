@@ -251,6 +251,10 @@ export class EcsRasaStack extends Stack {
             BUCKET_NAME: modelBucket.bucketName
           }
         }
+
+        const prodcommand: string[] = ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPortProd.toString(), "--auth-token", graphqlSecret.secretValue.toString()];
+        const modelLoader: string = "--load-s3-language-models";
+        rasaBot.rasaLoadModels? prodcommand.push(modelLoader) : null;
   
         rasaProdtd.addContainer(`${prefix}container-rasa-prod-${rasaBot.customerName}`, {
           image: ecs.ContainerImage.fromEcrRepository(rasarepo, rasaTag),
@@ -259,9 +263,7 @@ export class EcsRasaStack extends Stack {
             hostPort: rasaBot.rasaPortProd,
             containerPort: rasaBot.rasaPortProd
           }],
-          command: rasaBot.rasaLoadModels? 
-            ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPortProd.toString(), "--auth-token", graphqlSecret.secretValue.toString(), "--load-s3-language-models"] :
-            ["rasa", "run", "--enable-api", "--debug",  "--port", rasaBot.rasaPortProd.toString(), "--auth-token", graphqlSecret.secretValue.toString()],
+          command: prodcommand,
           environment: environment,
           secrets: {
             API_KEY: ecs.Secret.fromSecretsManager(graphqlSecret)

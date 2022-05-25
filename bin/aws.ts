@@ -137,7 +137,8 @@ const demoRasaBots: RasaBot[] = [
     actionsPort: 5059,
     projectId: 'palmu',
     customerName: 'palmu',
-    projectName: 'palmu'
+    projectName: 'palmu',
+    rasaLoadModels: true
   }
 ];
 
