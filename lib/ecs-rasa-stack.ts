@@ -42,7 +42,7 @@ export class EcsRasaStack extends Stack {
     for (const rasaBot of props.rasaBots) {
 
       // Rasa #1
-      const modelBucket = s3.Bucket.fromBucketName(this, `${prefix}model-bucket-${rasaBot.customerName}`, `${props.envName}.ecsbf.model-bucket`);
+      const modelBucket = s3.Bucket.fromBucketName(this, `${prefix}model-bucket`, `${props.envName}.ecsbf.model-bucket`);
       const rasarepo = ecr.Repository.fromRepositoryName(this, `${prefix}repository-rasa-${rasaBot.customerName}`, props.defaultRepositories.rasaBotRepository);
 
       const rasatd = new ecs.TaskDefinition(this, `${prefix}taskdefinition-rasa-${rasaBot.customerName}`, {
