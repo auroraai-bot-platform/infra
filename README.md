@@ -1,6 +1,8 @@
 # AuroraAI ChatBot AWS environment guide and templates
 
-This collection of templates configures the environment mostly automatically but some steps like database connection strings and passwords should be generated manually into the environment and passed as secret variables to the components.
+This collection of templates provides a reference implementation for running AuroraAI ChatBot in AWS. The environment is configured mostly automatically but some settings like database connection strings and passwords should be generated manually and passed as secret variables to the components.
+
+Please note that this a reference implementation that is only intended to serve as a possible starting point for your own environment. It will not run as is on a different AWS account, but should instead be adapted to your particular environment.
 
 ## Todo
 - Add cdk template for bootstrapping the environment
