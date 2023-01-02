@@ -15,6 +15,7 @@ export interface RasaBot {
   rasaLoadModels?: boolean;
   hasProd?: boolean;
   language?: string;
+  disabled?: boolean;
   additionalConfig?: {
     intents: {
       [intentPath: string]: string;

@@ -106,6 +106,7 @@ export class EcsRasaStack extends Stack {
 
       const rasaservice = new ecs.FargateService(this, `${prefix}service-rasa-${rasaBot.customerName}`, {
         cluster: props.baseCluster,
+        desiredCount: rasaBot.disabled ? 0 : 1,
         taskDefinition: rasatd,
         cloudMapOptions: {
           name: `rasa-${rasaBot.customerName}`
@@ -185,6 +186,7 @@ export class EcsRasaStack extends Stack {
 
       const actionsservice = new ecs.FargateService(this, `${prefix}service-actions-${rasaBot.customerName}`, {
         cluster: props.baseCluster,
+        desiredCount: rasaBot.disabled ? 0 : 1,
         taskDefinition: actionstd,
         cloudMapOptions: {
           name: `actions-${rasaBot.customerName}`
@@ -276,6 +278,7 @@ export class EcsRasaStack extends Stack {
   
         const rasaprodservice = new ecs.FargateService(this, `${prefix}service-rasa-prod-${rasaBot.customerName}`, {
           cluster: props.baseCluster,
+          desiredCount: rasaBot.disabled ? 0 : 1,
           taskDefinition: rasaProdtd,
           cloudMapOptions: {
             name: `rasa-prod-${rasaBot.customerName}`
@@ -346,6 +349,7 @@ export class EcsRasaStack extends Stack {
     
           const actionsprodservice = new ecs.FargateService(this, `${prefix}service-actions-prod-${rasaBot.customerName}`, {
             cluster: props.baseCluster,
+            desiredCount: rasaBot.disabled ? 0 : 1,
             taskDefinition: actionsprodtd,
             cloudMapOptions: {
               name: `actions-prod-${rasaBot.customerName}`
