@@ -44,6 +44,7 @@ const customerRasaBots: RasaBot[] = [
     projectId: 'HFqcqN9LEiDo8u2N7', 
     customerName: 'hyte-firstbot',
     projectName: 'hytebotti',
+    disabled: true,
     additionalConfig: {
       intents: {
         onerva: '/aloita{"oma_organisaatio": "onerva"}',
@@ -60,6 +61,7 @@ const customerRasaBots: RasaBot[] = [
     projectId: '5pdZnBudb8vgahE5X',
     customerName: 'iht-botti',
     projectName: 'ihtbotti',
+    disabled: true,
     language: 'en'
   },
   {
@@ -67,35 +69,40 @@ const customerRasaBots: RasaBot[] = [
     actionsPort: 5059,
     projectId: '5N9KN36CprezbZiND',
     customerName: 'kupotti',
-    projectName: 'kupotti'
+    projectName: 'kupotti',
+    disabled: true
   },
   {
     rasaPort: 5010,
     actionsPort: 5060,
     projectId: 'RdZ2sZtx5DXp6r6Ja',
     customerName: 'kukibotti',
-    projectName: 'kukibotti'
+    projectName: 'kukibotti',
+    disabled: true
   },
   {
     rasaPort: 5011,
     actionsPort: 5061,
     projectId: 'RE6gaLdvsMxGwKAcA',
     customerName: 'hdl-botti',
-    projectName: 'hdlbotti'
+    projectName: 'hdlbotti',
+    disabled: true
   },
   {
     rasaPort: 5012,
     actionsPort: 5062,
     projectId: 'Tyofez6zTQDxxSFZT',
     customerName: 'albotti',
-    projectName: 'albotti'
+    projectName: 'albotti',
+    disabled: true
   },
   {
     rasaPort: 5013,
     actionsPort: 5063,
     projectId: 'j5nFh8Rhr2jZkQHcg',
     customerName: 'kuhr',
-    projectName: 'kuhr'
+    projectName: 'kuhr',
+    disabled: true
   },
   {
     rasaPort: 5014,
