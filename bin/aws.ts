@@ -21,7 +21,7 @@ const defaultRepositories: DefaultRepositories = {
 
 const customerSoftwareVersions: SoftwareVersions = {
   frontend: '0.0.14',
-  botfront: 'c0b01a7effc3f19079c03e77459dbf784e86cd08',
+  botfront: '946b04c8ca970311c5933455eb7080bca2457d96',
   rasa: '9c692b7d3e17fcdcd93db8b919aa8aec6f8c5932',
   actions: 'test-recommender-2',
   projectCreation: '1.0.0'
