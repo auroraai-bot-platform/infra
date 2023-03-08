@@ -170,3 +170,38 @@ const demoenv = createEnvironment(app, {
   sourceBucketName,
   botfrontAdminEmail
 });
+
+// HDL environment
+
+const hdlSoftwareVersions: SoftwareVersions = {
+  frontend: '0.0.14',
+  botfront: 'c0b01a7effc3f19079c03e77459dbf784e86cd08',
+  rasa: '9c692b7d3e17fcdcd93db8b919aa8aec6f8c5932',
+  actions: 'test-recommender-2',
+  projectCreation: '1.0.0'
+};
+
+const hdlRasaBots: RasaBot[] = [
+  {
+    rasaPort: 5011,
+    actionsPort: 5061,
+    projectId: 'RE6gaLdvsMxGwKAcA',
+    customerName: 'hdl-botti',
+    projectName: 'hdlbotti',
+  },
+];
+
+const hdlenv = createEnvironment(app, {
+  domain: "hdlbotti.link",
+  defaultRepositories,
+  env: {
+    account: "367307615819",
+    region: "eu-north-1"
+  },
+  envName: "hdl",
+  rasaBots: hdlRasaBots,
+  subDomain: "hdl.hdlbotti.link",
+  softwareVersions: hdlSoftwareVersions,
+  sourceBucketName: "auroraai-source-code-bucket-367307615819-eu-north-1",
+  botfrontAdminEmail: "admin@hdlbotti.link",
+});

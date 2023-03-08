@@ -7,5 +7,14 @@
   "hosted-zone:account=530123621479:domainName=aaibot.link:region=eu-north-1": {
     "Id": "/hostedzone/Z0251505KGHO1EGOLQNL",
     "Name": "aaibot.link."
+  },
+  "availability-zones:account=367307615819:region=eu-north-1": [
+    "eu-north-1a",
+    "eu-north-1b",
+    "eu-north-1c"
+  ],
+  "hosted-zone:account=367307615819:domainName=hdlbotti.link:region=eu-north-1": {
+    "Id": "/hostedzone/Z0502694TVN4RDZ4VW5F",
+    "Name": "hdlbotti.link."
   }
 }
