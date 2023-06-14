@@ -20,7 +20,7 @@ const defaultRepositories: DefaultRepositories = {
 };
 
 const customerSoftwareVersions: SoftwareVersions = {
-  frontend: '0.0.14',
+  frontend: '0.6.2',
   botfront: '946b04c8ca970311c5933455eb7080bca2457d96',
   rasa: '9c692b7d3e17fcdcd93db8b919aa8aec6f8c5932',
   actions: 'test-recommender-2',
@@ -133,7 +133,7 @@ const demoEnvName = 'demo';
 const demoSubDomain = `${demoEnvName}.${domain}`;
 
 const demoSoftwareVersions: SoftwareVersions = {
-  frontend: '0.0.14',
+  frontend: 'latest',
   projectCreation: '1.0.0'
 };
 
